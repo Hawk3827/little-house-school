@@ -16,7 +16,7 @@ export default async function HomePage() {
   let tickerNotices: (NoticeData & { isPinned?: boolean })[] = [];
 
   try {
-    const rawAnnouncements = await prisma.announcement.findMany({
+    const dbPromise = prisma.announcement.findMany({
       orderBy: [
         { isPinned: 'desc' },
         { createdAt: 'desc' }
@@ -28,6 +28,12 @@ export default async function HomePage() {
         },
       },
     });
+
+    const timeoutPromise = new Promise<any[]>((_, reject) =>
+      setTimeout(() => reject(new Error('DB Timeout')), 350)
+    );
+
+    const rawAnnouncements = await Promise.race([dbPromise, timeoutPromise]);
 
     announcements = rawAnnouncements.filter(a => a.audience === 'ALL').slice(0, 3);
     tickerNotices = rawAnnouncements.filter(a => a.isTicker !== false).map(a => ({
@@ -43,7 +49,6 @@ export default async function HomePage() {
       }
     }));
   } catch (error) {
-    console.error('Failed to load seeded announcements:', error);
     announcements = [
       {
         id: '1',

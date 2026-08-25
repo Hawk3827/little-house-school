@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import NoticeDetailModal, { NoticeData } from './NoticeDetailModal';
 import { Megaphone, Sparkles, Image as ImageIcon, ChevronRight, Bell, ArrowUpRight } from 'lucide-react';
 
@@ -8,8 +8,41 @@ interface LiveNoticeTickerProps {
   notices?: (NoticeData & { isPinned?: boolean })[];
 }
 
-export default function LiveNoticeTicker({ notices = [] }: LiveNoticeTickerProps) {
+export default function LiveNoticeTicker({ notices: initialNotices = [] }: LiveNoticeTickerProps) {
   const [selectedNotice, setSelectedNotice] = useState<NoticeData | null>(null);
+  const [liveNotices, setLiveNotices] = useState<(NoticeData & { isPinned?: boolean })[]>(initialNotices);
+
+  useEffect(() => {
+    // Asynchronously fetch fresh notices on client without delaying initial server HTML response
+    let isMounted = true;
+    async function fetchLiveNotices() {
+      try {
+        const res = await fetch('/api/admin/announcements?tickerOnly=true');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.announcements && data.announcements.length > 0 && isMounted) {
+            setLiveNotices(data.announcements.map((a: any) => ({
+              id: a.id,
+              title: a.title,
+              content: a.content,
+              audience: a.audience,
+              imageUrl: a.imageUrl,
+              isPinned: a.isPinned,
+              createdAt: typeof a.createdAt === 'string' ? a.createdAt : new Date(a.createdAt).toISOString(),
+              createdBy: {
+                name: a.createdBy?.name || 'Administration Office'
+              }
+            })));
+          }
+        }
+      } catch (err) {
+        console.warn('Client notice fetch fallback:', err);
+      }
+    }
+
+    fetchLiveNotices();
+    return () => { isMounted = false; };
+  }, []);
 
   // Fallback default notices if none exist yet in DB
   const defaultNotices: (NoticeData & { isPinned?: boolean })[] = [
@@ -42,7 +75,7 @@ export default function LiveNoticeTicker({ notices = [] }: LiveNoticeTickerProps
     }
   ];
 
-  const activeNotices = notices.length > 0 ? notices : defaultNotices;
+  const activeNotices = liveNotices.length > 0 ? liveNotices : defaultNotices;
 
   // Separate pinned notice vs moving notices
   const pinnedNotice = activeNotices.find((n) => n.isPinned);
