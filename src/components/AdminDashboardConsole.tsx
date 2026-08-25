@@ -9,12 +9,15 @@ import AdminStudentsList from '@/components/AdminStudentsList';
 import AdminAdmissionsList from '@/components/AdminAdmissionsList';
 import AdminGalleryManagement from '@/components/AdminGalleryManagement';
 import AdminBackupManagement from '@/components/AdminBackupManagement';
+import AdminFeeManagement from '@/components/AdminFeeManagement';
+import AdminOnlinePayments from '@/components/AdminOnlinePayments';
 import { 
   LayoutDashboard,
   Users, 
   UserCheck, 
   UserPlus, 
   CreditCard, 
+  DollarSign, 
   Camera, 
   Megaphone, 
   BookOpen,
@@ -78,22 +81,24 @@ export default function AdminDashboardConsole({
     router.refresh();
   });
 
-  const switchTab = (tab: string) => {
-    setActiveTab(tab);
-    if (typeof window !== 'undefined') {
-      window.history.pushState(null, '', `/portal/admin?tab=${tab}`);
-    }
+  const switchTab = (tabId: string) => {
+    setActiveTab(tabId);
+    router.push(`/portal/admin?tab=${tabId}`, { scroll: false });
   };
 
-  const handleTogglePin = async (id: string, isPinned: boolean) => {
+  const handleTogglePin = async (id: string, currentStatus: boolean) => {
     try {
-      setAnnouncements(prev => prev.map(a => a.id === id ? { ...a, isPinned } : a));
-      await fetch('/api/admin/announcements', {
+      setAnnouncements(prev =>
+        prev.map(a => (a.id === id ? { ...a, isPinned: !currentStatus } : a))
+      );
+      const res = await fetch('/api/admin/announcements', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id, isPinned }),
+        body: JSON.stringify({ id, isPinned: !currentStatus }),
       });
-      router.refresh();
+      if (res.ok) {
+        router.refresh();
+      }
     } catch (err) {
       console.error('Failed to toggle pin:', err);
     }
@@ -122,6 +127,8 @@ export default function AdminDashboardConsole({
     { id: 'students', label: 'Student Roster', icon: Users, count: studentsCount },
     { id: 'enroll', label: 'Offline Enrollment', icon: UserPlus },
     { id: 'admissions', label: 'Online Admissions', icon: CreditCard, count: admissions.length },
+    { id: 'fees', label: 'Monthly Fee Payments', icon: DollarSign },
+    { id: 'online-payments', label: '💳 Online Razorpay Ledger', icon: CreditCard },
     { id: 'gallery', label: 'School Gallery', icon: Camera, count: galleryItems.length },
     { id: 'announcements', label: 'Announcements', icon: Megaphone, count: announcements.length },
     { id: 'backups', label: 'Disaster Recovery & Backups', icon: Database },
@@ -493,6 +500,20 @@ export default function AdminDashboardConsole({
               ))}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* VIEW: MONTHLY FEE PAYMENTS & RECORDS */}
+      {activeTab === 'fees' && (
+        <div className="animate-fadeIn">
+          <AdminFeeManagement />
+        </div>
+      )}
+
+      {/* VIEW: EXCLUSIVE ONLINE RAZORPAY PAYMENTS LEDGER */}
+      {activeTab === 'online-payments' && (
+        <div className="animate-fadeIn">
+          <AdminOnlinePayments />
         </div>
       )}
 

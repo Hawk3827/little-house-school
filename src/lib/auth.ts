@@ -36,9 +36,10 @@ export async function verifyToken(token: string): Promise<UserSession | null> {
 
 export async function createSession(user: UserSession) {
   const token = await signToken(user);
+  const isProductionVercel = process.env.VERCEL === '1';
   cookies().set(SESSION_COOKIE_NAME, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: isProductionVercel,
     sameSite: 'lax',
     maxAge: 60 * 60 * 2, // 2 hours
     path: '/',

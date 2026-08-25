@@ -18,11 +18,13 @@ import {
   Car
 } from 'lucide-react';
 import { AnimatedSection } from '@/components/AnimatedSection';
+import MonthlyFeePaymentModal from '@/components/MonthlyFeePaymentModal';
 
 export default function AdmissionPage() {
   const [activeSection, setActiveSection] = useState<'ADMISSION_PAYMENT' | 'VAN_FARES'>('ADMISSION_PAYMENT');
   const [step, setStep] = useState(1); // 1: Form, 2: Checkout, 3: Success
   const [paymentMethod, setPaymentMethod] = useState<'UPI' | 'CARD'>('UPI');
+  const [isFeeModalOpen, setIsFeeModalOpen] = useState(false);
 
   // Form states
   const [studentName, setStudentName] = useState('');
@@ -257,6 +259,15 @@ export default function AdmissionPage() {
           >
             <Bus className="h-4 w-4" />
             <span>Van Fares & Transit Routes</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsFeeModalOpen(true)}
+            className="px-5 sm:px-8 py-3 rounded-full text-xs font-mono font-bold tracking-wider uppercase transition-all flex items-center space-x-2.5 bg-emerald-600 hover:bg-emerald-500 text-white shadow-md"
+          >
+            <CreditCard className="h-4 w-4" />
+            <span>Pay Monthly Fees</span>
           </button>
         </div>
       </div>
@@ -832,6 +843,12 @@ export default function AdmissionPage() {
           </div>
         </div>
       )}
+
+      {/* Monthly Fee Payment Counter Modal */}
+      <MonthlyFeePaymentModal
+        isOpen={isFeeModalOpen}
+        onClose={() => setIsFeeModalOpen(false)}
+      />
     </div>
   );
 }

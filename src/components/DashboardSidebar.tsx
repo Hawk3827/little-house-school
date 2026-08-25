@@ -22,7 +22,8 @@ import {
   Sparkles,
   Award,
   ChevronRight,
-  Database
+  Database,
+  DollarSign
 } from 'lucide-react';
 
 interface DashboardSidebarProps {
@@ -76,6 +77,19 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
               href: '/portal/admin?tab=admissions',
               isActive: pathname === '/portal/admin' && currentTab === 'admissions',
               icon: CreditCard,
+            },
+            {
+              name: 'Monthly Fee Payments',
+              href: '/portal/admin?tab=fees',
+              isActive: pathname === '/portal/admin' && currentTab === 'fees',
+              icon: DollarSign,
+            },
+            {
+              name: 'Online Razorpay Ledger',
+              href: '/portal/admin?tab=online-payments',
+              isActive: pathname === '/portal/admin' && currentTab === 'online-payments',
+              icon: CreditCard,
+              badge: 'ONLINE'
             },
           ]
         },

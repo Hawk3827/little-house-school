@@ -27,8 +27,10 @@ import {
   Paperclip
 } from 'lucide-react';
 import StudentPhotoLightbox from '@/components/StudentPhotoLightbox';
+import MonthlyFeePaymentModal from '@/components/MonthlyFeePaymentModal';
 import { formatDateSafe } from '@/lib/dateUtils';
 import { useAutoReconnect } from '@/lib/useAutoReconnect';
+import { CreditCard, Receipt } from 'lucide-react';
 
 export default function ParentPortalPage() {
   const [admissionNo, setAdmissionNo] = useState('');
@@ -38,6 +40,7 @@ export default function ParentPortalPage() {
   const [student, setStudent] = useState<any | null>(null);
   const [lightboxPhoto, setLightboxPhoto] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'reports' | 'activities' | 'grades'>('reports');
+  const [isFeeModalOpen, setIsFeeModalOpen] = useState(false);
 
   const handleLookup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -187,7 +190,16 @@ export default function ParentPortalPage() {
               </button>
             </form>
 
-            <div className="pt-4 border-t border-slate-100 text-center">
+            <div className="pt-4 border-t border-slate-100 text-center space-y-3">
+              <button
+                type="button"
+                onClick={() => setIsFeeModalOpen(true)}
+                className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs rounded-2xl transition flex items-center justify-center space-x-2 shadow-md"
+              >
+                <CreditCard className="h-4 w-4" />
+                <span>Pay Monthly School & Bus Fees Online</span>
+              </button>
+
               <p className="text-[11px] text-slate-400">
                 Having trouble accessing your child&apos;s record? Contact the school administration at <span className="font-semibold text-slate-600">info@littlehouse.edu.in</span>
               </p>
@@ -560,6 +572,13 @@ export default function ParentPortalPage() {
             onClose={() => setLightboxPhoto(null)}
           />
         )}
+
+        {/* Monthly Fee Payment Modal */}
+        <MonthlyFeePaymentModal
+          isOpen={isFeeModalOpen}
+          onClose={() => setIsFeeModalOpen(false)}
+          initialAdmissionNo={student?.admissionNo || admissionNo}
+        />
       </div>
     </div>
   );

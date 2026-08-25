@@ -211,3 +211,20 @@ model StudentActivityDocument {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 }
+
+model FeePayment {
+  id              String   @id @default(uuid())
+  receiptNo       String   @unique
+  studentName     String
+  admissionNo     String
+  studentClass    String
+  parentPhone     String?
+  paidMonths      String   // e.g. "August 2026"
+  tuitionFee      Float    @default(0)
+  transportFee    Float    @default(0)
+  totalAmount     Float
+  paymentMode     String   @default("UPI_ONLINE")
+  paymentRef      String
+  paymentStatus   String   @default("PAID")
+  createdAt       DateTime @default(now())
+}
