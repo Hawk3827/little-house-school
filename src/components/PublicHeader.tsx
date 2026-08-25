@@ -20,7 +20,7 @@ import {
 import HeaderSearch from '@/components/HeaderSearch';
 
 interface PublicHeaderProps {
-  session: {
+  session?: {
     userId: string;
     email: string;
     name: string;
@@ -28,9 +28,30 @@ interface PublicHeaderProps {
   } | null;
 }
 
-export default function PublicHeader({ session }: PublicHeaderProps) {
+export default function PublicHeader({ session: initialSession = null }: PublicHeaderProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [session, setSession] = useState(initialSession);
   const pathname = usePathname();
+
+  useEffect(() => {
+    // Asynchronously check active session on client without forcing server SSR
+    let isMounted = true;
+    async function checkClientSession() {
+      try {
+        const res = await fetch('/api/auth/session');
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted) setSession(data.session || null);
+        }
+      } catch (err) {
+        // Silent catch for public guests
+      }
+    }
+    if (!initialSession) {
+      checkClientSession();
+    }
+    return () => { isMounted = false; };
+  }, [initialSession]);
 
   // Close mobile menu on route change
   useEffect(() => {

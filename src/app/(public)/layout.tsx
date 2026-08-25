@@ -1,19 +1,14 @@
 import React from 'react';
 import PublicHeader from '@/components/PublicHeader';
-import { getSession } from '@/lib/auth';
-import Link from 'next/link';
-
-export default async function PublicLayout({
+export default function PublicLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getSession();
-
   return (
     <div className="min-h-screen flex flex-col bg-white text-slate-900 selection:bg-sky-500 selection:text-white">
       {/* Responsive Navigation Header with Mobile Hamburger Menu */}
-      <PublicHeader session={session} />
+      <PublicHeader />
 
       {/* Main Content */}
       <main className="flex-grow">{children}</main>
