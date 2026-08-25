@@ -28,17 +28,14 @@ export async function POST(request: Request) {
     }
 
     const formData = await request.formData();
-    const title = formData.get('title') as string;
+    const rawTitle = formData.get('title') as string;
     const category = (formData.get('category') as string) || 'Campus Events';
+    const title = (rawTitle && rawTitle.trim()) ? rawTitle.trim() : category || 'Campus Photo';
     const description = (formData.get('description') as string) || '';
     const mediaType = (formData.get('mediaType') as string) || 'PHOTO'; // 'PHOTO' | 'VIDEO'
-    const videoLink = formData.get('videoLink') as string || '';
+    const videoLink = (formData.get('videoLink') as string) || '';
     const photoFile = formData.get('photo') as File | null;
     const videoFile = formData.get('video') as File | null;
-
-    if (!title || !title.trim()) {
-      return NextResponse.json({ error: 'Title is required.' }, { status: 400 });
-    }
 
     let imageUrl = '/hero-bg.jpg';
     let videoUrl: string | null = null;

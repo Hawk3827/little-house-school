@@ -130,10 +130,6 @@ export default function AdminGalleryManagement({ initialItems }: AdminGalleryMan
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim()) {
-      setErrorMsg('Please provide a title for the media item.');
-      return;
-    }
 
     if (mediaType === 'PHOTO' && !photoFile) {
       setErrorMsg('Please select a photo to upload.');
@@ -157,7 +153,8 @@ export default function AdminGalleryManagement({ initialItems }: AdminGalleryMan
 
     try {
       const formData = new FormData();
-      formData.append('title', title);
+      const finalTitle = title.trim() || category || 'Campus Photo';
+      formData.append('title', finalTitle);
       formData.append('category', category);
       formData.append('description', description);
       formData.append('mediaType', mediaType);
@@ -319,14 +316,13 @@ export default function AdminGalleryManagement({ initialItems }: AdminGalleryMan
             {/* Title */}
             <div>
               <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
-                {mediaType === 'VIDEO' ? 'Video Title *' : 'Photo Title *'}
+                {mediaType === 'VIDEO' ? 'Video Title (Optional)' : 'Photo Title (Optional)'}
               </label>
               <input
                 type="text"
-                required
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder={mediaType === 'VIDEO' ? 'e.g. Annual Day Dance Performance & Highlights' : 'e.g. Annual Sports Meet 2026 Celebration'}
+                placeholder={mediaType === 'VIDEO' ? 'e.g. Annual Day Dance Performance & Highlights (Optional)' : 'e.g. Annual Sports Meet 2026 (Optional)'}
                 className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition text-gray-800"
               />
             </div>
