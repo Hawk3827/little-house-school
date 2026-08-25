@@ -4,7 +4,7 @@ import { Camera, Sparkles } from 'lucide-react';
 import { AnimatedSection } from '@/components/AnimatedSection';
 import PublicGalleryGrid from '@/components/PublicGalleryGrid';
 
-export const revalidate = 0; // Always serve fresh photos on upload
+export const revalidate = 60; // 60-second Edge Caching (ISR) for instant page loads
 
 export default async function GalleryPage() {
   let items: any[] = [];
