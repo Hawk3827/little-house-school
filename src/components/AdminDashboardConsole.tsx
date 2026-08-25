@@ -23,7 +23,8 @@ import {
   ArrowRight,
   ShieldCheck,
   School,
-  Database
+  Database,
+  Trash2
 } from 'lucide-react';
 import Link from 'next/link';
 import { formatDateSafe } from '@/lib/dateUtils';
@@ -49,7 +50,7 @@ export default function AdminDashboardConsole({
   students,
   archivedStudents = [],
   admissions,
-  announcements,
+  announcements: initialAnnouncements,
   galleryItems,
 }: AdminDashboardConsoleProps) {
   const searchParams = useSearchParams();
@@ -57,6 +58,11 @@ export default function AdminDashboardConsole({
 
   const tabParam = searchParams.get('tab');
   const [activeTab, setActiveTab] = useState<string>(tabParam || 'overview');
+  const [announcements, setAnnouncements] = useState<any[]>(initialAnnouncements);
+
+  useEffect(() => {
+    setAnnouncements(initialAnnouncements);
+  }, [initialAnnouncements]);
 
   // Keep in sync with URL search parameter
   useEffect(() => {
@@ -81,6 +87,7 @@ export default function AdminDashboardConsole({
 
   const handleTogglePin = async (id: string, isPinned: boolean) => {
     try {
+      setAnnouncements(prev => prev.map(a => a.id === id ? { ...a, isPinned } : a));
       await fetch('/api/admin/announcements', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -89,6 +96,23 @@ export default function AdminDashboardConsole({
       router.refresh();
     } catch (err) {
       console.error('Failed to toggle pin:', err);
+    }
+  };
+
+  const handleDeleteAnnouncement = async (id: string, title: string) => {
+    if (!confirm(`Are you sure you want to delete notice "${title}"?\nIt will be permanently removed from the website and homepage moving ticker.`)) {
+      return;
+    }
+    try {
+      setAnnouncements(prev => prev.filter(a => a.id !== id));
+      const res = await fetch(`/api/admin/announcements?id=${id}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        router.refresh();
+      }
+    } catch (err) {
+      console.error('Failed to delete announcement:', err);
     }
   };
 
@@ -445,6 +469,15 @@ export default function AdminDashboardConsole({
                         title={ann.isPinned ? 'Click to Unpin' : 'Click to Pin statically to Notice Bar'}
                       >
                         {ann.isPinned ? '📌 Pinned' : 'Pin to Bar'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteAnnouncement(ann.id, ann.title)}
+                        className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 transition flex items-center space-x-1"
+                        title="Delete this notice permanently"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                        <span>Delete</span>
                       </button>
                       <span className="text-[10px] text-gray-400 font-mono">
                         {formatDateSafe(ann.createdAt, 'short')}
