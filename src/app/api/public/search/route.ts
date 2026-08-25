@@ -115,13 +115,13 @@ export async function GET(request: Request) {
       },
       {
         title: 'About LITTLE HOUSE & Educational Vision',
-        desc: 'Read about our history, holistic curriculum, core pillars, and message from Principal Arthur Vance.',
+        desc: 'Read about our history, holistic curriculum, core pillars, and message from Principal Haobam Chanu Ranjana.',
         category: 'About Us',
         iconType: 'about',
         actionLabel: 'Read About Us',
         href: '/about',
         keywords: [
-          'about', 'legacy', 'history', 'vision', 'mission', 'principal', 'arthur vance', 
+          'about', 'legacy', 'history', 'vision', 'mission', 'principal', 'haobam chanu ranjana', 'ranjana', 
           'leadership', 'philosophy', 'curriculum', 'pillars', 'values', 'little house'
         ]
       },

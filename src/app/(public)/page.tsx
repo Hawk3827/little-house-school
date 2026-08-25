@@ -55,7 +55,7 @@ export default async function HomePage() {
         title: 'Welcome to the New Academic Year 2026-2027!',
         content: 'We are thrilled to welcome all new and returning students back to school. Let\'s make this year productive, engaging, and inspiring.',
         createdAt: new Date(),
-        createdBy: { name: 'Principal Arthur Vance' },
+        createdBy: { name: 'Haobam Chanu Ranjana' },
       },
     ];
   }
@@ -190,7 +190,7 @@ export default async function HomePage() {
             <div className="w-40 h-40 bg-gradient-to-br from-sky-100 to-sky-200 rounded-[28px] flex items-center justify-center text-sky-800 font-extrabold text-2xl border-2 border-sky-300 overflow-hidden relative shadow-md">
               <User className="h-20 w-20 text-sky-800" />
             </div>
-            <div className="font-extrabold text-slate-900 text-lg mt-4 uppercase tracking-tight">Arthur Vance</div>
+            <div className="font-extrabold text-slate-900 text-lg mt-4 uppercase tracking-tight">Haobam Chanu Ranjana</div>
             <span className="text-[10px] font-mono font-extrabold tracking-widest text-sky-900 bg-sky-100 px-3 py-1 rounded-full border border-sky-300 uppercase mt-1">HEAD PRINCIPAL</span>
           </div>
           <div className="md:col-span-8 space-y-5 text-left">
