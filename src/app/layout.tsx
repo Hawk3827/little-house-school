@@ -35,9 +35,9 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "LITTLE HOUSE Administration" }],
   icons: {
-    icon: "/school-logo.png",
-    shortcut: "/school-logo.png",
-    apple: "/school-logo.png",
+    icon: "/school-logo.png?v=2",
+    shortcut: "/school-logo.png?v=2",
+    apple: "/school-logo.png?v=2",
   },
   openGraph: {
     title: "LITTLE HOUSE • A Family of Learning (Waiton Lamkhai)",
