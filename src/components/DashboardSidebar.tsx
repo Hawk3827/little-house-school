@@ -222,6 +222,14 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
 
   const navSections = getNavSections();
 
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (href.includes('?tab=') && pathname === href.split('?')[0]) {
+      e.preventDefault();
+      window.history.pushState(null, '', href);
+      window.dispatchEvent(new Event('popstate'));
+    }
+  };
+
   return (
     <aside className="w-68 bg-white border-r border-gray-200 hidden md:flex flex-col justify-between p-5 select-none h-screen sticky top-0 overflow-y-auto no-scrollbar">
       <div className="space-y-6">
@@ -269,6 +277,7 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
                     <Link
                       key={itemIdx}
                       href={item.href}
+                      onClick={(e) => handleNavClick(e, item.href)}
                       className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
                         item.isActive
                           ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-200 font-bold'
