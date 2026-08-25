@@ -197,7 +197,7 @@ export default function ParentPortalPage() {
                 className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs rounded-2xl transition flex items-center justify-center space-x-2 shadow-md"
               >
                 <CreditCard className="h-4 w-4" />
-                <span>Pay Monthly School & Bus Fees Online</span>
+                <span>Pay Monthly Tuition Fees Online</span>
               </button>
 
               <p className="text-[11px] text-slate-400">
