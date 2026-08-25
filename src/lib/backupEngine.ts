@@ -9,6 +9,16 @@ export interface MediaBackupFile {
   sizeBytes: number;
 }
 
+export interface DedicatedFeeBackupResult {
+  filenameJson: string;
+  filenameCsv: string;
+  totalFeeRecords: number;
+  totalAmountCollected: number;
+  cloudBackupJson?: GoogleDriveUploadResult;
+  cloudBackupCsv?: GoogleDriveUploadResult;
+  timestamp: string;
+}
+
 export interface DatabaseSnapshotData {
   version: string;
   timestamp: string;
@@ -27,6 +37,7 @@ export interface DatabaseSnapshotData {
     events: any[];
     galleryItems: any[];
     messages: any[];
+    feePayments: any[];
   };
   mediaFiles?: MediaBackupFile[];
   summary: {
@@ -39,9 +50,11 @@ export interface DatabaseSnapshotData {
     gradesCount: number;
     reportsCount: number;
     admissionsCount: number;
+    feePaymentsCount?: number;
     mediaFilesCount?: number;
   };
   cloudBackup?: GoogleDriveUploadResult;
+  dedicatedFeeBackup?: DedicatedFeeBackupResult;
 }
 
 export interface SnapshotMeta {
@@ -52,6 +65,7 @@ export interface SnapshotMeta {
   createdAt: string;
   summary: DatabaseSnapshotData['summary'];
   cloudBackup?: GoogleDriveUploadResult;
+  dedicatedFeeBackup?: DedicatedFeeBackupResult;
 }
 
 const BACKUP_DIR = path.join(process.cwd(), 'backups', 'snapshots');
@@ -97,12 +111,99 @@ async function collectUploadFiles(dir: string, baseDir: string): Promise<MediaBa
 }
 
 /**
+ * Creates a standalone dedicated Monthly Fee Payments backup (JSON & CSV),
+ * uploads to Google Drive, and auto-rotates (overwriting old fee backups, keeping only the latest new daily backup).
+ */
+export async function createDedicatedFeeBackup(): Promise<DedicatedFeeBackupResult> {
+  await ensureBackupDir();
+
+  const feePayments = await prisma.feePayment.findMany({
+    orderBy: { createdAt: 'desc' },
+  });
+
+  const timestamp = new Date().toISOString();
+  const totalAmountCollected = feePayments.reduce((sum, f) => sum + f.totalAmount, 0);
+
+  // 1. JSON Dedicated Fee Backup
+  const feeBackupJsonData = {
+    version: '2.0-FEES-DEDICATED',
+    timestamp,
+    school: 'LITTLE HOUSE (Waiton Lamkhai, Imphal East, Manipur)',
+    backupType: 'DEDICATED_MONTHLY_FEE_PAYMENTS_REGISTER',
+    summary: {
+      totalFeeRecords: feePayments.length,
+      totalAmountCollected,
+    },
+    feePayments,
+  };
+
+  const filenameJson = 'LHS_Fee_Payments_Backup_Latest.json';
+  const filepathJson = path.join(BACKUP_DIR, filenameJson);
+  const jsonContent = JSON.stringify(feeBackupJsonData, null, 2);
+
+  // Upload JSON to Google Drive
+  const cloudJsonResult = await uploadSnapshotToGoogleDrive(
+    filenameJson,
+    jsonContent,
+    'application/json'
+  );
+
+  await writeFile(filepathJson, jsonContent, 'utf-8');
+
+  // 2. CSV Dedicated Fee Backup
+  const csvHeader = 'Receipt No,Student Name,Admission No,Class,Parent Phone,Paid Months,Tuition Fee,Transport Fee,Total Amount,Payment Mode,Payment Ref,Status,Date\n';
+  const csvRows = feePayments.map((f) => 
+    `"${f.receiptNo}","${f.studentName}","${f.admissionNo}","${f.studentClass}","${f.parentPhone || ''}","${f.paidMonths}",${f.tuitionFee},${f.transportFee},${f.totalAmount},"${f.paymentMode}","${f.paymentRef}","${f.paymentStatus}","${new Date(f.createdAt).toISOString()}"`
+  ).join('\n');
+
+  const filenameCsv = 'LHS_Fee_Payments_Backup_Latest.csv';
+  const filepathCsv = path.join(BACKUP_DIR, filenameCsv);
+  const csvContent = csvHeader + csvRows;
+
+  // Upload CSV to Google Drive
+  const cloudCsvResult = await uploadSnapshotToGoogleDrive(
+    filenameCsv,
+    csvContent,
+    'text/csv'
+  );
+
+  await writeFile(filepathCsv, csvContent, 'utf-8');
+
+  // Auto-prune old fee backups in local folder
+  try {
+    const existingFiles = await readdir(BACKUP_DIR);
+    const oldFeeFiles = existingFiles.filter(
+      (f) => f.startsWith('LHS_Fee_Payments_Backup_') && f !== filenameJson && f !== filenameCsv
+    );
+    for (const oldFile of oldFeeFiles) {
+      try {
+        await unlink(path.join(BACKUP_DIR, oldFile));
+      } catch (err) {
+        // ignore
+      }
+    }
+  } catch (err) {
+    // ignore
+  }
+
+  return {
+    filenameJson,
+    filenameCsv,
+    totalFeeRecords: feePayments.length,
+    totalAmountCollected,
+    cloudBackupJson: cloudJsonResult,
+    cloudBackupCsv: cloudCsvResult,
+    timestamp,
+  };
+}
+
+/**
  * Creates a complete database + media snapshot, saves locally, and uploads to Google Drive.
  */
 export async function createDatabaseSnapshot(): Promise<SnapshotMeta> {
   await ensureBackupDir();
 
-  // 1. Fetch all data across all tables
+  // 1. Fetch all data across all tables (including feePayments)
   const [
     users,
     profiles,
@@ -116,7 +217,8 @@ export async function createDatabaseSnapshot(): Promise<SnapshotMeta> {
     announcements,
     events,
     galleryItems,
-    messages
+    messages,
+    feePayments
   ] = await Promise.all([
     prisma.user.findMany(),
     prisma.profile.findMany(),
@@ -131,6 +233,7 @@ export async function createDatabaseSnapshot(): Promise<SnapshotMeta> {
     prisma.event.findMany(),
     prisma.galleryItem.findMany(),
     prisma.message.findMany(),
+    prisma.feePayment.findMany(),
   ]);
 
   // 2. Scan and bundle all uploaded media (Student photos, gallery photos, notices, certificates)
@@ -154,7 +257,8 @@ export async function createDatabaseSnapshot(): Promise<SnapshotMeta> {
     announcements.length +
     events.length +
     galleryItems.length +
-    messages.length;
+    messages.length +
+    feePayments.length;
 
   const summary = {
     totalRecords,
@@ -166,6 +270,7 @@ export async function createDatabaseSnapshot(): Promise<SnapshotMeta> {
     gradesCount: grades.length,
     reportsCount: monthlyReports.length,
     admissionsCount: admissions.length,
+    feePaymentsCount: feePayments.length,
     mediaFilesCount: mediaFiles.length,
   };
 
@@ -173,6 +278,14 @@ export async function createDatabaseSnapshot(): Promise<SnapshotMeta> {
   const dateStr = timestamp.replace(/[:.]/g, '-');
   const filename = `lhs-backup-${dateStr}.json`;
   const filepath = path.join(BACKUP_DIR, filename);
+
+  // Generate dedicated fee backup automatically
+  let dedicatedFeeBackup: DedicatedFeeBackupResult | undefined;
+  try {
+    dedicatedFeeBackup = await createDedicatedFeeBackup();
+  } catch (err) {
+    console.warn('Dedicated fee backup generation error:', err);
+  }
 
   const snapshotData: DatabaseSnapshotData = {
     version: '2.0',
@@ -192,12 +305,14 @@ export async function createDatabaseSnapshot(): Promise<SnapshotMeta> {
       events,
       galleryItems,
       messages,
+      feePayments,
     },
     mediaFiles,
     summary,
+    dedicatedFeeBackup,
   };
 
-  // 3. Upload snapshot to Google Drive
+  // 3. Upload full snapshot to Google Drive
   const jsonContent = JSON.stringify(snapshotData, null, 2);
   const cloudResult = await uploadSnapshotToGoogleDrive(filename, jsonContent, 'application/json');
   snapshotData.cloudBackup = cloudResult;

@@ -395,6 +395,61 @@ export default function AdminBackupManagement() {
           </div>
         </div>
 
+        {/* Dedicated Monthly Fee Backup Banner */}
+        <div className="bg-gradient-to-r from-emerald-900 via-sky-900 to-indigo-900 text-white rounded-3xl p-6 sm:p-7 shadow-lg space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center space-x-2">
+                <span className="text-[10px] font-mono font-extrabold tracking-widest text-amber-300 bg-amber-950/80 border border-amber-400/40 px-2.5 py-0.5 rounded-full uppercase">
+                  DEDICATED FEE BACKUP ACTIVE
+                </span>
+                <span className="text-[10px] font-mono font-bold text-emerald-300 bg-emerald-950/80 border border-emerald-400/40 px-2.5 py-0.5 rounded-full uppercase">
+                  AUTO-ROTATE DAILY
+                </span>
+              </div>
+              <h3 className="text-xl sm:text-2xl font-black text-white">Standalone Monthly Fee Payments Backup</h3>
+              <p className="text-xs text-sky-200 font-normal">
+                Monthly fee records are backed up separately to Google Drive daily (replacing yesterday&apos;s file with the fresh daily copy), while ALSO staying permanently preserved inside full database snapshots.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2.5 flex-shrink-0">
+              <a
+                href="/api/admin/backups/download?filename=LHS_Fee_Payments_Backup_Latest.json"
+                download="LHS_Fee_Payments_Backup_Latest.json"
+                className="bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-extrabold text-xs px-4 py-2.5 rounded-xl transition shadow-md flex items-center space-x-1.5 border border-emerald-300"
+              >
+                <Download className="h-3.5 w-3.5" />
+                <span>Download Fee JSON</span>
+              </a>
+
+              <a
+                href="/api/admin/backups/download?filename=LHS_Fee_Payments_Backup_Latest.csv"
+                download="LHS_Fee_Payments_Backup_Latest.csv"
+                className="bg-white/10 hover:bg-white/20 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl transition border border-white/20 flex items-center space-x-1.5"
+              >
+                <Download className="h-3.5 w-3.5 text-amber-300" />
+                <span>Download Fee CSV</span>
+              </a>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 text-xs font-mono border-t border-white/10 text-sky-100">
+            <div>
+              <span className="text-sky-300 font-normal block">Offsite Google Drive File:</span>
+              <span className="font-bold text-white">LHS_Fee_Payments_Backup_Latest.json</span>
+            </div>
+            <div>
+              <span className="text-sky-300 font-normal block">Backup Policy:</span>
+              <span className="font-bold text-emerald-300">Daily Auto-Rotate (Keep Latest Only)</span>
+            </div>
+            <div>
+              <span className="text-sky-300 font-normal block">Full Database Snapshots:</span>
+              <span className="font-bold text-amber-300">Included in Full DB Snapshots</span>
+            </div>
+          </div>
+        </div>
+
         {/* Notifications */}
         {statusMessage && (
           <div

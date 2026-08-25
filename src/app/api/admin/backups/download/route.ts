@@ -15,7 +15,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const filename = searchParams.get('filename');
 
-    if (!filename || !filename.endsWith('.json')) {
+    if (!filename || (!filename.endsWith('.json') && !filename.endsWith('.csv'))) {
       return NextResponse.json({ error: 'Valid snapshot filename is required.' }, { status: 400 });
     }
 
@@ -23,11 +23,12 @@ export async function GET(request: Request) {
     const filepath = path.join(process.cwd(), 'backups', 'snapshots', safeFilename);
 
     const fileBuffer = await readFile(filepath);
+    const contentType = safeFilename.endsWith('.csv') ? 'text/csv' : 'application/json';
 
     return new NextResponse(fileBuffer, {
       status: 200,
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': contentType,
         'Content-Disposition': `attachment; filename="${safeFilename}"`,
       },
     });
