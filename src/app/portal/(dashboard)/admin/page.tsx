@@ -5,7 +5,7 @@ import AdminDashboardConsole from '@/components/AdminDashboardConsole';
 export const revalidate = 0; // Always fetch fresh data for admin
 
 export default async function AdminDashboard() {
-  // Execute all admin queries in parallel via Promise.all for maximum speed (~150ms total)
+  // Ultra-lightweight parallel queries: exclude heavy base64 monthly reports/documents from initial payload
   const [
     totalUsers,
     studentsCount,
@@ -22,17 +22,45 @@ export default async function AdminDashboard() {
     prisma.user.count({ where: { role: 'STUDENT' } }),
     prisma.user.count({ where: { role: 'TEACHER' } }),
     prisma.class.findMany({
-      include: {
-        teacher: true,
-        enrollments: true,
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        teacherId: true,
+        teacher: {
+          select: {
+            id: true,
+            name: true,
+            phone: true,
+          },
+        },
+        enrollments: {
+          select: {
+            id: true,
+            studentId: true,
+          },
+        },
       },
     }),
     prisma.user.findMany({
       where: { role: 'TEACHER' },
-      include: {
+      select: {
+        id: true,
+        email: true,
+        createdAt: true,
         profile: {
-          include: {
-            taughtClasses: true,
+          select: {
+            id: true,
+            name: true,
+            phone: true,
+            address: true,
+            photoUrl: true,
+            taughtClasses: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
           },
         },
       },
@@ -40,7 +68,15 @@ export default async function AdminDashboard() {
     }),
     prisma.announcement.findMany({
       orderBy: { createdAt: 'desc' },
-      include: {
+      select: {
+        id: true,
+        title: true,
+        content: true,
+        audience: true,
+        isTicker: true,
+        isPinned: true,
+        imageUrl: true,
+        createdAt: true,
         createdBy: {
           select: { name: true },
         },
@@ -51,22 +87,30 @@ export default async function AdminDashboard() {
         role: 'STUDENT',
         profile: { isArchived: false },
       },
-      include: {
+      select: {
+        id: true,
+        email: true,
+        createdAt: true,
         profile: {
-          include: {
+          select: {
+            id: true,
+            name: true,
+            phone: true,
+            address: true,
+            admissionNo: true,
+            photoUrl: true,
+            isArchived: true,
             enrollments: {
-              include: { class: true },
-            },
-            monthlyReports: {
-              orderBy: { createdAt: 'desc' },
-              include: { uploadedBy: { select: { name: true } } },
-            },
-            studentActivityDocs: {
-              orderBy: { createdAt: 'desc' },
-              include: { uploadedBy: { select: { name: true } } },
-            },
-            studentGrades: {
-              orderBy: { assessmentDate: 'desc' },
+              select: {
+                id: true,
+                classId: true,
+                class: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+              },
             },
           },
         },
@@ -78,22 +122,30 @@ export default async function AdminDashboard() {
         role: 'STUDENT',
         profile: { isArchived: true },
       },
-      include: {
+      select: {
+        id: true,
+        email: true,
+        createdAt: true,
         profile: {
-          include: {
+          select: {
+            id: true,
+            name: true,
+            phone: true,
+            address: true,
+            admissionNo: true,
+            photoUrl: true,
+            isArchived: true,
             enrollments: {
-              include: { class: true },
-            },
-            monthlyReports: {
-              orderBy: { createdAt: 'desc' },
-              include: { uploadedBy: { select: { name: true } } },
-            },
-            studentActivityDocs: {
-              orderBy: { createdAt: 'desc' },
-              include: { uploadedBy: { select: { name: true } } },
-            },
-            studentGrades: {
-              orderBy: { assessmentDate: 'desc' },
+              select: {
+                id: true,
+                classId: true,
+                class: {
+                  select: {
+                    id: true,
+                    name: true,
+                  },
+                },
+              },
             },
           },
         },

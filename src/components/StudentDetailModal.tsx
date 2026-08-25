@@ -75,11 +75,78 @@ interface StudentDetailModalProps {
 export default function StudentDetailModal({
   isOpen,
   onClose,
-  student,
+  student: initialStudent,
   onEdit,
 }: StudentDetailModalProps) {
   const [activeTab, setActiveTab] = useState<'reports' | 'activities' | 'grades'>('reports');
   const [lightboxPhoto, setLightboxPhoto] = useState<string | null>(null);
+  const [detailedStudent, setDetailedStudent] = useState<StudentDetailData | null>(initialStudent);
+  const [loadingDetails, setLoadingDetails] = useState(false);
+
+  useEffect(() => {
+    setDetailedStudent(initialStudent);
+    let isMounted = true;
+
+    async function fetchFullDetails() {
+      if (initialStudent?.id && (!initialStudent.monthlyReports || initialStudent.monthlyReports.length === 0)) {
+        setLoadingDetails(true);
+        try {
+          const res = await fetch(`/api/admin/student-details?id=${initialStudent.id}`);
+          if (res.ok && isMounted) {
+            const data = await res.json();
+            if (data.student) {
+              setDetailedStudent((prev) => ({
+                ...prev!,
+                monthlyReports: data.student.monthlyReports?.map((r: any) => ({
+                  id: r.id,
+                  month: r.month,
+                  totalDays: r.totalDays,
+                  daysPresent: r.daysPresent,
+                  daysAbsent: r.daysAbsent,
+                  conduct: r.conduct,
+                  remarks: r.remarks,
+                  attachmentUrl: r.attachmentUrl,
+                  attachmentName: r.attachmentName,
+                  teacherName: r.uploadedBy?.name || 'Class Teacher',
+                  updatedAt: r.updatedAt,
+                })) || [],
+                activityDocs: data.student.studentActivityDocs?.map((d: any) => ({
+                  id: d.id,
+                  title: d.title,
+                  type: d.type,
+                  fileUrl: d.fileUrl,
+                  fileName: d.fileName,
+                  fileType: d.fileType,
+                  remarks: d.remarks,
+                  activityDate: d.activityDate,
+                  teacherName: d.uploadedBy?.name || 'Class Teacher',
+                })) || [],
+                grades: data.student.studentGrades?.map((g: any) => ({
+                  id: g.id,
+                  subject: g.subject,
+                  score: g.score,
+                  maxScore: g.maxScore,
+                  remarks: g.remarks,
+                })) || [],
+              }));
+            }
+          }
+        } catch (err) {
+          console.warn('On-demand student detail fetch fallback:', err);
+        } finally {
+          if (isMounted) setLoadingDetails(false);
+        }
+      }
+    }
+
+    if (isOpen && initialStudent) {
+      fetchFullDetails();
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isOpen, initialStudent]);
 
   // Close on Escape key
   useEffect(() => {
@@ -92,8 +159,9 @@ export default function StudentDetailModal({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
-  if (!isOpen || !student) return null;
+  if (!isOpen || !detailedStudent) return null;
 
+  const student = detailedStudent;
   const reports = student.monthlyReports || [];
   const activityDocs = student.activityDocs || [];
   const grades = student.grades || [];
