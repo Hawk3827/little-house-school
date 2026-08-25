@@ -13,10 +13,11 @@ export default function ScrollStorytelling() {
     offset: ['start start', 'end end'],
   });
 
-  // Create a smoothed spring-based progress value (butter-smooth scrolling physics)
+  // Smoothed spring physics optimized for 60 FPS GPU rendering
   const smoothedProgress = useSpring(scrollYProgress, {
-    stiffness: 45,
-    damping: 20,
+    stiffness: 90,
+    damping: 28,
+    mass: 0.1,
     restDelta: 0.001
   });
 

@@ -100,43 +100,46 @@ body {
 }
 
 @keyframes marquee {
-  0% { transform: translateX(0%); }
-  100% { transform: translateX(-50%); }
+  0% { transform: translate3d(0%, 0, 0); }
+  100% { transform: translate3d(-50%, 0, 0); }
 }
 
 @keyframes noticeBlink {
   0%, 100% {
-    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4);
-    border-color: rgba(245, 158, 11, 1);
-    background-color: #fffbeb;
+    opacity: 1;
+    transform: scale(1) translateZ(0);
   }
   50% {
-    box-shadow: 0 0 14px 4px rgba(239, 68, 68, 0.4);
-    border-color: rgba(239, 68, 68, 0.9);
-    background-color: #fef2f2;
+    opacity: 0.92;
+    transform: scale(1.012) translateZ(0);
   }
 }
 
 .animate-noticeBlink {
-  animation: noticeBlink 1.6s infinite ease-in-out;
+  animation: noticeBlink 1.8s infinite ease-in-out;
+  will-change: transform, opacity;
 }
 
 .animate-fadeIn {
   animation: fadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
 }
 
 .animate-slideDown {
   animation: slideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
 }
 
 .animate-slideRight {
   animation: slideRight 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
 }
 
 .animate-marquee {
   display: flex;
   width: max-content;
   animation: marquee 60s linear infinite;
+  will-change: transform;
 }
 
 /* Safe-area insets */

@@ -1,7 +1,5 @@
 import { PrismaClient } from '@prisma/client';
 
-let prisma: PrismaClient;
-
 const databaseUrl = process.env.DATABASE_URL || '';
 const isPostgres = databaseUrl.startsWith('postgres://') || databaseUrl.startsWith('postgresql://');
 
@@ -9,7 +7,13 @@ function createClient() {
   if (isPostgres) {
     const { PrismaPg } = require('@prisma/adapter-pg');
     const pg = require('pg');
-    const pool = new pg.Pool({ connectionString: databaseUrl });
+    // Configure connection pool limits for serverless cloud environments
+    const pool = new pg.Pool({ 
+      connectionString: databaseUrl,
+      max: 10,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 5000,
+    });
     const adapter = new PrismaPg(pool);
     return new PrismaClient({ adapter });
   } else {
@@ -21,14 +25,16 @@ function createClient() {
   }
 }
 
-if (process.env.NODE_ENV === 'production') {
-  prisma = createClient();
+// Global caching for both Production and Development to reuse DB connection pools
+const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
+
+export const prisma = globalForPrisma.prisma || createClient();
+
+if (process.env.NODE_ENV !== 'production') {
+  globalForPrisma.prisma = prisma;
 } else {
-  // Prevent multiple instances of Prisma Client in development due to hot reloading
-  if (!(global as any).prisma) {
-    (global as any).prisma = createClient();
-  }
-  prisma = (global as any).prisma;
+  // Store client globally in production serverless runtimes to prevent connection pool exhaustion
+  globalForPrisma.prisma = prisma;
 }
 
 export default prisma;
