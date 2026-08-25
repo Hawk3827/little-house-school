@@ -5,6 +5,7 @@ import { getSession } from '@/lib/auth';
 import { writeFile } from 'fs/promises';
 import path from 'path';
 import { validateFileMagicBytes } from '@/lib/serverFileValidation';
+import { saveUploadedFile } from '@/lib/uploadHelper';
 import { handleApiError } from '@/lib/errorHandler';
 
 export async function POST(request: Request) {
@@ -62,10 +63,12 @@ export async function POST(request: Request) {
           return NextResponse.json({ error: magicCheck.error || 'Invalid image file signature.' }, { status: 400 });
         }
 
-        const filename = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}_${magicCheck.sanitizedFilename}`;
-        const uploadPath = path.join(process.cwd(), 'public', 'uploads', filename);
-        await writeFile(uploadPath, buffer);
-        photoUrl = `/uploads/${filename}`;
+        photoUrl = await saveUploadedFile(
+          buffer,
+          photo.name,
+          'avatars',
+          photo.type || 'image/jpeg'
+        );
       } catch (uploadErr) {
         console.error('Photo save error:', uploadErr);
       }

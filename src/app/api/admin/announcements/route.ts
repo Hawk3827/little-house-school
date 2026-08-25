@@ -5,6 +5,7 @@ import { writeFile, mkdir, unlink } from 'fs/promises';
 import path from 'path';
 import { sanitizeText, sanitizeHtml } from '@/lib/sanitize';
 import { validateFileMagicBytes } from '@/lib/serverFileValidation';
+import { saveUploadedFile } from '@/lib/uploadHelper';
 
 export const dynamic = 'force-dynamic';
 
@@ -82,14 +83,12 @@ export async function POST(request: Request) {
           return NextResponse.json({ error: magicCheck.error || 'Invalid notice image signature.' }, { status: 400 });
         }
 
-        const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'notices');
-        await mkdir(uploadDir, { recursive: true });
-
-        const filename = `notice-${Date.now()}-${Math.random().toString(36).substring(2, 8)}_${magicCheck.sanitizedFilename}`;
-        const filePath = path.join(uploadDir, filename);
-
-        await writeFile(filePath, buffer);
-        imageUrl = `/uploads/notices/${filename}`;
+        imageUrl = await saveUploadedFile(
+          buffer,
+          photoFile.name,
+          'notices',
+          photoFile.type || 'image/jpeg'
+        );
       }
     } else {
       const body = await request.json();

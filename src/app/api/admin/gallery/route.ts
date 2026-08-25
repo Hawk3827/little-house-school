@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
-import fs from 'fs';
-import path from 'path';
 import { validateFileMagicBytes } from '@/lib/serverFileValidation';
+import { saveUploadedFile } from '@/lib/uploadHelper';
 
 export const dynamic = 'force-dynamic';
 
@@ -44,12 +43,6 @@ export async function POST(request: Request) {
     let imageUrl = '/hero-bg.jpg';
     let videoUrl: string | null = null;
 
-    const galleryUploadDir = path.join(process.cwd(), 'public', 'uploads', 'gallery');
-    const videoUploadDir = path.join(galleryUploadDir, 'videos');
-
-    if (!fs.existsSync(galleryUploadDir)) fs.mkdirSync(galleryUploadDir, { recursive: true });
-    if (!fs.existsSync(videoUploadDir)) fs.mkdirSync(videoUploadDir, { recursive: true });
-
     // Handle Photo upload / Poster image
     if (photoFile && photoFile.size > 0) {
       const buffer = Buffer.from(await photoFile.arrayBuffer());
@@ -59,28 +52,25 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: magicCheck.error || 'Invalid image signature.' }, { status: 400 });
       }
 
-      const timestamp = Date.now();
-      const fileName = `img_${timestamp}_${magicCheck.sanitizedFilename}`;
-      const filePath = path.join(galleryUploadDir, fileName);
-
-      fs.writeFileSync(filePath, buffer);
-      imageUrl = `/uploads/gallery/${fileName}`;
+      imageUrl = await saveUploadedFile(
+        buffer,
+        photoFile.name,
+        'gallery',
+        photoFile.type || 'image/jpeg'
+      );
     }
 
     // Handle Video Media
     if (mediaType === 'VIDEO') {
       if (videoFile && videoFile.size > 0) {
-        // Uploaded video file
-        const timestamp = Date.now();
-        const cleanFileName = videoFile.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-        const fileName = `vid_${timestamp}_${cleanFileName}`;
-        const filePath = path.join(videoUploadDir, fileName);
-
         const buffer = Buffer.from(await videoFile.arrayBuffer());
-        fs.writeFileSync(filePath, buffer);
-        videoUrl = `/uploads/gallery/videos/${fileName}`;
+        videoUrl = await saveUploadedFile(
+          buffer,
+          videoFile.name,
+          'gallery/videos',
+          videoFile.type || 'video/mp4'
+        );
       } else if (videoLink && videoLink.trim()) {
-        // Video URL (YouTube, Vimeo, direct MP4)
         videoUrl = videoLink.trim();
       } else {
         return NextResponse.json({ 
@@ -88,7 +78,6 @@ export async function POST(request: Request) {
         }, { status: 400 });
       }
     } else {
-      // Photo media
       if (!photoFile || photoFile.size === 0) {
         return NextResponse.json({ error: 'Please choose an image file to upload.' }, { status: 400 });
       }
@@ -108,64 +97,35 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ 
       success: true, 
-      item: galleryItem,
-      message: `${mediaType === 'VIDEO' ? 'Video' : 'Photo'} published successfully to school gallery!`
+      message: `${mediaType === 'VIDEO' ? 'Video' : 'Photo'} published to website gallery successfully!`,
+      item: galleryItem 
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error uploading gallery item:', error);
-    return NextResponse.json({ error: 'Failed to upload media to gallery' }, { status: 500 });
+    return NextResponse.json({ error: error.message || 'Failed to upload media to gallery' }, { status: 500 });
   }
 }
 
-// DELETE: Admin remove photo or video from gallery
+// DELETE: Remove gallery item
 export async function DELETE(request: Request) {
   try {
     const session = await getSession();
     if (!session || session.role !== 'ADMIN') {
-      return NextResponse.json({ error: 'Unauthorized. Admin access required.' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 
     if (!id) {
-      return NextResponse.json({ error: 'Gallery item ID is required' }, { status: 400 });
+      return NextResponse.json({ error: 'Missing gallery item ID' }, { status: 400 });
     }
 
-    const item = await prisma.galleryItem.findUnique({
-      where: { id },
-    });
-
-    if (!item) {
-      return NextResponse.json({ error: 'Gallery item not found' }, { status: 404 });
-    }
-
-    // Delete record from database
     await prisma.galleryItem.delete({
       where: { id },
     });
 
-    // Remove local image file if present
-    try {
-      if (item.imageUrl && item.imageUrl.startsWith('/uploads/')) {
-        const fullLocalPath = path.join(process.cwd(), 'public', item.imageUrl.replace(/^\//, ''));
-        if (fs.existsSync(fullLocalPath)) fs.unlinkSync(fullLocalPath);
-      }
-    } catch (fsErr) {
-      console.warn('Could not delete image file from disk:', fsErr);
-    }
-
-    // Remove local video file if present
-    try {
-      if (item.videoUrl && item.videoUrl.startsWith('/uploads/')) {
-        const fullLocalPath = path.join(process.cwd(), 'public', item.videoUrl.replace(/^\//, ''));
-        if (fs.existsSync(fullLocalPath)) fs.unlinkSync(fullLocalPath);
-      }
-    } catch (fsErr) {
-      console.warn('Could not delete video file from disk:', fsErr);
-    }
-
-    return NextResponse.json({ success: true, message: 'Media item deleted from gallery' });
+    return NextResponse.json({ success: true, message: 'Gallery item deleted successfully.' });
   } catch (error) {
     console.error('Error deleting gallery item:', error);
     return NextResponse.json({ error: 'Failed to delete gallery item' }, { status: 500 });

@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { writeFile, unlink } from 'fs/promises';
 import path from 'path';
+import { saveUploadedFile } from '@/lib/uploadHelper';
 
 export async function POST(request: Request) {
   try {
@@ -69,12 +70,12 @@ export async function POST(request: Request) {
       try {
         const bytes = await file.arrayBuffer();
         const buffer = Buffer.from(bytes);
-        const ext = path.extname(file.name) || '.pdf';
-        const sanitizedFilename = `report-${Date.now()}-${Math.random().toString(36).substring(2, 7)}${ext}`;
-        const uploadPath = path.join(process.cwd(), 'public', 'uploads', 'reports', sanitizedFilename);
-        
-        await writeFile(uploadPath, buffer);
-        attachmentUrl = `/uploads/reports/${sanitizedFilename}`;
+        attachmentUrl = await saveUploadedFile(
+          buffer,
+          file.name,
+          'reports',
+          file.type || 'application/pdf'
+        );
         attachmentName = file.name;
       } catch (uploadErr) {
         console.error('Report file upload error:', uploadErr);

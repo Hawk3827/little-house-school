@@ -4,6 +4,7 @@ import { getSession } from '@/lib/auth';
 import { writeFile, unlink } from 'fs/promises';
 import path from 'path';
 import { validateFileMagicBytes } from '@/lib/serverFileValidation';
+import { saveUploadedFile } from '@/lib/uploadHelper';
 
 export async function POST(request: Request) {
   try {
@@ -58,11 +59,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: magicCheck.error || 'Invalid file signature.' }, { status: 400 });
     }
 
-    const sanitizedFilename = `activity-${Date.now()}-${Math.random().toString(36).substring(2, 7)}_${magicCheck.sanitizedFilename}`;
-    const uploadPath = path.join(process.cwd(), 'public', 'uploads', 'activities', sanitizedFilename);
-
-    await writeFile(uploadPath, buffer);
-    const fileUrl = `/uploads/activities/${sanitizedFilename}`;
+    const fileUrl = await saveUploadedFile(
+      buffer,
+      file.name,
+      'activities',
+      file.type || magicCheck.mimeType || 'application/octet-stream'
+    );
 
     const activityDoc = await prisma.studentActivityDocument.create({
       data: {

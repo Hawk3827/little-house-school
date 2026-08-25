@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import { getSession } from '@/lib/auth';
 import { writeFile, unlink } from 'fs/promises';
 import path from 'path';
+import { saveUploadedFile } from '@/lib/uploadHelper';
 
 // GET all teachers
 export async function GET() {
@@ -75,11 +76,12 @@ export async function POST(request: Request) {
       try {
         const bytes = await photo.arrayBuffer();
         const buffer = Buffer.from(bytes);
-        const ext = path.extname(photo.name) || '.jpg';
-        const filename = `teacher-${Date.now()}-${Math.random().toString(36).substring(2, 8)}${ext}`;
-        const uploadPath = path.join(process.cwd(), 'public', 'uploads', filename);
-        await writeFile(uploadPath, buffer);
-        photoUrl = `/uploads/${filename}`;
+        photoUrl = await saveUploadedFile(
+          buffer,
+          photo.name,
+          'avatars',
+          photo.type || 'image/jpeg'
+        );
       } catch (uploadErr) {
         console.error('Teacher photo save error:', uploadErr);
       }
