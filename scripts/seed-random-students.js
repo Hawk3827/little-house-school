@@ -1,9 +1,14 @@
+require('dotenv').config();
 const { PrismaClient } = require('@prisma/client');
 const { PrismaPg } = require('@prisma/adapter-pg');
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 
-const databaseUrl = process.env.DATABASE_URL || 'postgresql://neondb_owner:npg_8EXTgryQ4fCH@ep-broad-sun-azt2vxmg.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require';
+const databaseUrl = process.env.DATABASE_URL;
+if (!databaseUrl) {
+  console.error('Error: DATABASE_URL environment variable is missing.');
+  process.exit(1);
+}
 const pool = new Pool({ connectionString: databaseUrl });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
