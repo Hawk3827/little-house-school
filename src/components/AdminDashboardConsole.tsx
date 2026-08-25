@@ -74,7 +74,9 @@ export default function AdminDashboardConsole({
 
   const switchTab = (tab: string) => {
     setActiveTab(tab);
-    router.push(`/portal/admin?tab=${tab}`, { scroll: false });
+    if (typeof window !== 'undefined') {
+      window.history.pushState(null, '', `/portal/admin?tab=${tab}`);
+    }
   };
 
   const handleTogglePin = async (id: string, isPinned: boolean) => {
