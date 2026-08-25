@@ -228,7 +228,7 @@ function LoginForm() {
                     <Shield className="h-4 w-4" />
                   </div>
                   <div>
-                    <span className="block font-bold text-slate-900">Admin: Principal Arthur Vance</span>
+                    <span className="block font-bold text-slate-900">Admin: Haobam Chanu Ranjana</span>
                     <span className="block text-[10px] font-mono text-sky-700">admin@school.com / admin123</span>
                   </div>
                 </div>

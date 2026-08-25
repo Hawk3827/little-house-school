@@ -51,7 +51,7 @@ async function main() {
       role: 'ADMIN',
       profile: {
         create: {
-          name: 'Principal Arthur Vance',
+          name: 'Haobam Chanu Ranjana',
           phone: '+1-555-0100',
           address: '100 School Lane, Education City',
         },
