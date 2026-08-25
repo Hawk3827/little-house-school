@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://littlehouse.edu.in';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://thelittlehouseschool.in';
   const currentDate = new Date();
 
   return [

@@ -1,7 +1,7 @@
 import React from 'react';
 
 export default function StructuredData() {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://littlehouse.edu.in';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://thelittlehouseschool.in';
 
   // 1. Schema.org/School & EducationalOrganization Knowledge Graph
   const schoolSchema = {
@@ -15,7 +15,7 @@ export default function StructuredData() {
     image: `${baseUrl}/school-banner.png`,
     description: 'Official portal for Little House School, located at Waiton Lamkhai, Imphal East, Manipur (795114). Comprehensive education from Play-Group to Class VI with modern facilities, monthly report card tracking, and dedicated transport routes.',
     telephone: '+919876543210',
-    email: 'info@littlehouse.edu.in',
+    email: 'info@thelittlehouseschool.in',
     priceRange: '₹₹',
     hasCredential: 'Recognized by Directorate of Education, Government of Manipur',
     foundingDate: '1984',

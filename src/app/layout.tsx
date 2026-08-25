@@ -17,7 +17,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL('http://localhost:3000'),
+  metadataBase: new URL('https://thelittlehouseschool.in'),
   title: {
     default: "LITTLE HOUSE • A Family of Learning | Waiton Lamkhai, Manipur",
     template: "%s | LITTLE HOUSE SCHOOL"
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "LITTLE HOUSE • A Family of Learning (Waiton Lamkhai)",
     description: "Nurturing creative minds, shaping ethical character, and inspiring academic excellence in Manipur. Admissions open for Play-Group to Class VI.",
-    url: "https://littlehouse.edu.in",
+    url: "https://thelittlehouseschool.in",
     siteName: "LITTLE HOUSE SCHOOL",
     images: [
       {
