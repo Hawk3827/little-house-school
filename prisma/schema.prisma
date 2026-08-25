@@ -1,0 +1,213 @@
+datasource db {
+  provider = "sqlite"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  role      String   // "ADMIN", "TEACHER", "STUDENT", "PARENT"
+  profile   Profile?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Profile {
+  id         String   @id // references User.id
+  user       User     @relation(fields: [id], references: id, onDelete: Cascade)
+  name       String
+  phone      String?
+  address    String?
+  admissionNo String?  @unique
+  photoUrl   String?
+  isArchived Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Teacher relationships
+  taughtClasses Class[]      @relation("ClassTeacher")
+  markedGrades  Grade[]      @relation("GradeTeacher")
+  markedAttendance Attendance[] @relation("AttendanceTeacher")
+  uploadedReports MonthlyReport[] @relation("ReportTeacher")
+  uploadedActivityDocs StudentActivityDocument[] @relation("ActivityDocTeacher")
+
+  // Student relationships
+  enrollments   Enrollment[]
+  studentGrades Grade[]      @relation("StudentGrades")
+  attendance    Attendance[] @relation("StudentAttendance")
+  monthlyReports MonthlyReport[] @relation("StudentMonthlyReports")
+  studentActivityDocs StudentActivityDocument[] @relation("StudentActivityDocs")
+  
+  // Student-Parent many-to-many relationship
+  asStudentParents StudentParent[] @relation("StudentRelation")
+  asParentStudents StudentParent[] @relation("ParentRelation")
+
+  // Announcements created by this profile
+  announcements Announcement[]
+
+  // Messages
+  sentMessages     Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
+}
+
+model Class {
+  id          String         @id @default(uuid())
+  name        String
+  description String?
+  teacherId   String?
+  teacher     Profile?       @relation("ClassTeacher", fields: [teacherId], references: id)
+  enrollments Enrollment[]
+  announcements Announcement[]
+  createdAt   DateTime       @default(now())
+}
+
+model Enrollment {
+  id        String   @id @default(uuid())
+  studentId String
+  student   Profile  @relation(fields: [studentId], references: id, onDelete: Cascade)
+  classId   String
+  class     Class    @relation(fields: [classId], references: id, onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([studentId, classId])
+}
+
+model StudentParent {
+  studentId String
+  student   Profile @relation("StudentRelation", fields: [studentId], references: id, onDelete: Cascade)
+  parentId  String
+  parent    Profile @relation("ParentRelation", fields: [parentId], references: id, onDelete: Cascade)
+
+  @@id([studentId, parentId])
+}
+
+model Attendance {
+  id          String   @id @default(uuid())
+  studentId   String
+  student     Profile  @relation("StudentAttendance", fields: [studentId], references: id, onDelete: Cascade)
+  date        DateTime
+  status      String   // "PRESENT", "ABSENT", "LATE"
+  markedById  String
+  markedBy    Profile  @relation("AttendanceTeacher", fields: [markedById], references: id)
+  createdAt   DateTime @default(now())
+
+  @@unique([studentId, date])
+}
+
+model Grade {
+  id             String   @id @default(uuid())
+  studentId      String
+  student        Profile  @relation("StudentGrades", fields: [studentId], references: id, onDelete: Cascade)
+  subject        String
+  score          Float
+  maxScore       Float
+  assessmentDate DateTime
+  remarks        String?
+  teacherId      String
+  teacher        Profile  @relation("GradeTeacher", fields: [teacherId], references: id)
+  createdAt      DateTime @default(now())
+}
+
+model Announcement {
+  id          String   @id @default(uuid())
+  title       String
+  content     String
+  audience    String   // "ALL", "TEACHERS", "STUDENTS", "PARENTS"
+  imageUrl    String?  // Detailed notice photo / circular image
+  isTicker    Boolean  @default(true) // Whether to display on public ticker
+  isPinned    Boolean  @default(false) // Pin to notice bar without moving
+  classId     String?
+  class       Class?   @relation(fields: [classId], references: id, onDelete: Cascade)
+  createdById String
+  createdBy   Profile  @relation(fields: [createdById], references: id, onDelete: Cascade)
+  createdAt   DateTime @default(now())
+}
+
+model GalleryItem {
+  id          String   @id @default(uuid())
+  title       String
+  imageUrl    String
+  mediaType   String   @default("PHOTO") // "PHOTO" | "VIDEO"
+  videoUrl    String?
+  description String?
+  category    String?  @default("CAMPUS")
+  createdAt   DateTime @default(now())
+}
+
+model Message {
+  id         String   @id @default(uuid())
+  senderId   String
+  sender     Profile  @relation("SentMessages", fields: [senderId], references: id, onDelete: Cascade)
+  receiverId String
+  receiver   Profile  @relation("ReceivedMessages", fields: [receiverId], references: id, onDelete: Cascade)
+  content    String
+  read       Boolean  @default(false)
+  createdAt  DateTime @default(now())
+}
+
+model Event {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  date        DateTime
+  type        String   // "EXAM", "HOLIDAY", "SPORTS", "MEETING", "OTHER"
+  createdAt   DateTime @default(now())
+}
+
+model Admission {
+  id                 String    @id @default(uuid())
+  studentName        String
+  grade              String
+  parentName         String
+  parentEmail        String
+  parentPhone        String?
+  amount             Float
+  status             String    // "PENDING" | "PAID"
+  paymentReference   String?
+  verificationStatus String    @default("PENDING_VERIFICATION") // "VERIFIED" | "PENDING_VERIFICATION" | "REJECTED"
+  verifiedAt         DateTime?
+  verifiedBy         String?   // Admin staff name/email who cross-checked bank statement
+  verificationNotes  String?   // Office remarks e.g. "Matched SBI passbook UTR on 25 Aug"
+  createdAt          DateTime  @default(now())
+}
+
+model MonthlyReport {
+  id             String   @id @default(uuid())
+  studentId      String
+  student        Profile  @relation("StudentMonthlyReports", fields: [studentId], references: id, onDelete: Cascade)
+  month          String   // e.g. "August 2026" or "2026-08"
+  totalDays      Int      @default(0)
+  daysPresent    Int      @default(0)
+  daysAbsent     Int      @default(0)
+  conduct        String?  // e.g. "Excellent", "Good", "Satisfactory", "Needs Improvement"
+  remarks        String?  // Detailed teacher evaluation
+  attachmentUrl  String?  // Report card file / PDF / Image
+  attachmentName String?  // Original filename
+  uploadedById   String
+  uploadedBy     Profile  @relation("ReportTeacher", fields: [uploadedById], references: id)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([studentId, month])
+}
+
+model StudentActivityDocument {
+  id             String    @id @default(uuid())
+  studentId      String
+  student        Profile   @relation("StudentActivityDocs", fields: [studentId], references: id, onDelete: Cascade)
+  title          String
+  type           String    // "PHOTO" | "DOCUMENT"
+  fileUrl        String
+  fileName       String?
+  fileType       String?
+  remarks        String?
+  activityDate   DateTime? @default(now())
+  uploadedById   String
+  uploadedBy     Profile   @relation("ActivityDocTeacher", fields: [uploadedById], references: id)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}

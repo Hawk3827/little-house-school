@@ -1,0 +1,159 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  role      String   // "ADMIN", "TEACHER", "STUDENT", "PARENT"
+  profile   Profile?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Profile {
+  id         String   @id // references User.id
+  user       User     @relation(fields: [id], references: id, onDelete: Cascade)
+  name       String
+  phone      String?
+  address    String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Teacher relationships
+  taughtClasses Class[]      @relation("ClassTeacher")
+  markedGrades  Grade[]      @relation("GradeTeacher")
+  markedAttendance Attendance[] @relation("AttendanceTeacher")
+
+  // Student relationships
+  enrollments   Enrollment[]
+  studentGrades Grade[]      @relation("StudentGrades")
+  attendance    Attendance[] @relation("StudentAttendance")
+  
+  // Student-Parent many-to-many relationship
+  asStudentParents StudentParent[] @relation("StudentRelation")
+  asParentStudents StudentParent[] @relation("ParentRelation")
+
+  // Announcements created by this profile
+  announcements Announcement[]
+
+  // Messages
+  sentMessages     Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
+}
+
+model Class {
+  id          String         @id @default(uuid())
+  name        String
+  description String?
+  teacherId   String?
+  teacher     Profile?       @relation("ClassTeacher", fields: [teacherId], references: id)
+  enrollments Enrollment[]
+  announcements Announcement[]
+  createdAt   DateTime       @default(now())
+}
+
+model Enrollment {
+  id        String   @id @default(uuid())
+  studentId String
+  student   Profile  @relation(fields: [studentId], references: id, onDelete: Cascade)
+  classId   String
+  class     Class    @relation(fields: [classId], references: id, onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([studentId, classId])
+}
+
+model StudentParent {
+  studentId String
+  student   Profile @relation("StudentRelation", fields: [studentId], references: id, onDelete: Cascade)
+  parentId  String
+  parent    Profile @relation("ParentRelation", fields: [parentId], references: id, onDelete: Cascade)
+
+  @@id([studentId, parentId])
+}
+
+model Attendance {
+  id          String   @id @default(uuid())
+  studentId   String
+  student     Profile  @relation("StudentAttendance", fields: [studentId], references: id, onDelete: Cascade)
+  date        DateTime
+  status      String   // "PRESENT", "ABSENT", "LATE"
+  markedById  String
+  markedBy    Profile  @relation("AttendanceTeacher", fields: [markedById], references: id)
+  createdAt   DateTime @default(now())
+
+  @@unique([studentId, date])
+}
+
+model Grade {
+  id             String   @id @default(uuid())
+  studentId      String
+  student        Profile  @relation("StudentGrades", fields: [studentId], references: id, onDelete: Cascade)
+  subject        String
+  score          Float
+  maxScore       Float
+  assessmentDate DateTime
+  remarks        String?
+  teacherId      String
+  teacher        Profile  @relation("GradeTeacher", fields: [teacherId], references: id)
+  createdAt      DateTime @default(now())
+}
+
+model Announcement {
+  id          String   @id @default(uuid())
+  title       String
+  content     String
+  audience    String   // "ALL", "TEACHERS", "STUDENTS", "PARENTS"
+  classId     String?
+  class       Class?   @relation(fields: [classId], references: id, onDelete: Cascade)
+  createdById String
+  createdBy   Profile  @relation(fields: [createdById], references: id, onDelete: Cascade)
+  createdAt   DateTime @default(now())
+}
+
+model GalleryItem {
+  id          String   @id @default(uuid())
+  title       String
+  imageUrl    String
+  description String?
+  createdAt   DateTime @default(now())
+}
+
+model Message {
+  id         String   @id @default(uuid())
+  senderId   String
+  sender     Profile  @relation("SentMessages", fields: [senderId], references: id, onDelete: Cascade)
+  receiverId String
+  receiver   Profile  @relation("ReceivedMessages", fields: [receiverId], references: id, onDelete: Cascade)
+  content    String
+  read       Boolean  @default(false)
+  createdAt  DateTime @default(now())
+}
+
+model Event {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  date        DateTime
+  type        String   // "EXAM", "HOLIDAY", "SPORTS", "MEETING", "OTHER"
+  createdAt   DateTime @default(now())
+}
+
+model Admission {
+  id               String   @id @default(uuid())
+  studentName      String
+  grade            String
+  parentName       String
+  parentEmail      String
+  parentPhone      String?
+  amount           Float
+  status           String   // "PENDING" | "PAID"
+  paymentReference String?
+  createdAt        DateTime @default(now())
+}
