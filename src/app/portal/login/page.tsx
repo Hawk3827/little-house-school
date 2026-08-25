@@ -188,56 +188,6 @@ function LoginForm() {
               )}
             </button>
           </form>
-
-          {/* ⚡ 1-Click Fast Demo Logins */}
-          <div className="pt-6 border-t border-slate-100 space-y-3">
-            <div className="flex items-center justify-center space-x-1.5 text-[10px] font-mono font-bold text-slate-500 uppercase tracking-widest">
-              <Sparkles className="h-3.5 w-3.5 text-amber-500" />
-              <span>1-CLICK INSTANT LOGIN (TEST ACCOUNTS)</span>
-            </div>
-
-            <div className="space-y-2 text-xs">
-              <button
-                type="button"
-                disabled={loading}
-                onClick={() => handleQuickLogin('teacher1@school.com', 'teacher123')}
-                className="w-full bg-amber-50 hover:bg-amber-100 text-amber-900 p-3 rounded-2xl font-bold text-left border border-amber-200 transition flex items-center justify-between group shadow-2xs"
-              >
-                <div className="flex items-center space-x-2.5">
-                  <div className="p-1.5 bg-amber-200 text-amber-900 rounded-lg">
-                    <UserCheck className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <span className="block font-bold text-slate-900">Teacher: Sarah Jenkins</span>
-                    <span className="block text-[10px] font-mono text-amber-700">teacher@school.com / teacher123</span>
-                  </div>
-                </div>
-                <span className="text-[10px] font-mono bg-amber-200/80 px-2 py-0.5 rounded text-amber-900 group-hover:bg-amber-300 transition">
-                  1-Click Login →
-                </span>
-              </button>
-
-              <button
-                type="button"
-                disabled={loading}
-                onClick={() => handleQuickLogin('admin@school.com', 'admin123')}
-                className="w-full bg-sky-50 hover:bg-sky-100 text-sky-900 p-3 rounded-2xl font-bold text-left border border-sky-200 transition flex items-center justify-between group shadow-2xs"
-              >
-                <div className="flex items-center space-x-2.5">
-                  <div className="p-1.5 bg-sky-200 text-sky-900 rounded-lg">
-                    <Shield className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <span className="block font-bold text-slate-900">Admin: Haobam Chanu Ranjana</span>
-                    <span className="block text-[10px] font-mono text-sky-700">admin@school.com / admin123</span>
-                  </div>
-                </div>
-                <span className="text-[10px] font-mono bg-sky-200/80 px-2 py-0.5 rounded text-sky-900 group-hover:bg-sky-300 transition">
-                  1-Click Login →
-                </span>
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     </div>
