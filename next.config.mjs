@@ -57,6 +57,16 @@ const nextConfig = {
           },
         ],
       },
+      {
+        // Public pages edge caching (15ms instant delivery)
+        source: '/((?!api|portal|admin|teacher).*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, s-maxage=60, stale-while-revalidate=300',
+          },
+        ],
+      },
     ];
   },
   async redirects() {
