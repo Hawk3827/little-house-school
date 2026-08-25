@@ -8,7 +8,7 @@ import LiveNoticeTicker from '@/components/LiveNoticeTicker';
 
 import { NoticeData } from '@/components/NoticeDetailModal';
 
-export const revalidate = 60; // 60-second Edge Caching (ISR) for instant 15ms page loads
+export const revalidate = 300; // 5-minute Edge Caching (ISR) for instant 15ms loading
 
 export default async function HomePage() {
   let announcements: any[] = [];
