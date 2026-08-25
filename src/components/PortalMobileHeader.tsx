@@ -24,7 +24,8 @@ import {
   FileText,
   FileSpreadsheet,
   LayoutDashboard,
-  Database
+  Database,
+  DollarSign
 } from 'lucide-react';
 import SignOutButton from './SignOutButton';
 
@@ -107,6 +108,30 @@ export default function PortalMobileHeader({ session }: PortalMobileHeaderProps)
                 <span>Online Paid Admissions</span>
               </div>
               <ChevronRight className="h-3.5 w-3.5 text-gray-400" />
+            </Link>
+            <Link
+              href="/portal/admin?tab=fees"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center justify-between p-2.5 rounded-xl hover:bg-gray-50 text-gray-700 text-xs font-semibold"
+            >
+              <div className="flex items-center space-x-2.5">
+                <DollarSign className="h-4 w-4 text-emerald-600" />
+                <span>Monthly Fee Register</span>
+              </div>
+              <ChevronRight className="h-3.5 w-3.5 text-gray-400" />
+            </Link>
+            <Link
+              href="/portal/admin?tab=online-payments"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-50/80 text-emerald-950 text-xs font-extrabold border border-emerald-200/80"
+            >
+              <div className="flex items-center space-x-2.5">
+                <CreditCard className="h-4 w-4 text-emerald-600" />
+                <span>Online Razorpay Ledger</span>
+              </div>
+              <span className="text-[9px] font-mono font-bold text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded uppercase">
+                ONLINE
+              </span>
             </Link>
           </div>
 
