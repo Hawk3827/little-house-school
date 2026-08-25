@@ -62,8 +62,7 @@ export default function StructuredData() {
       url: `${baseUrl}/admission`,
     },
     sameAs: [
-      'https://www.facebook.com/littlehouseschoolmanipur',
-      'https://www.instagram.com/littlehouse_school',
+      'https://www.facebook.com/share/1JaexocNb7/',
       'https://maps.google.com/?cid=littlehouse_waiton',
     ],
   };
