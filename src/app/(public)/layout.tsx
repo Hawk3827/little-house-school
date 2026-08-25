@@ -1,5 +1,6 @@
 import React from 'react';
 import PublicHeader from '@/components/PublicHeader';
+import Link from 'next/link';
 export default function PublicLayout({
   children,
 }: {
