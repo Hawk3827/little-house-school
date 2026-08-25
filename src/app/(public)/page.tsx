@@ -8,6 +8,7 @@ import LiveNoticeTicker from '@/components/LiveNoticeTicker';
 
 import { NoticeData } from '@/components/NoticeDetailModal';
 
+export const dynamic = 'force-static';
 export const revalidate = 300; // 5-minute Edge Caching (ISR) for instant 15ms loading
 
 export default async function HomePage() {

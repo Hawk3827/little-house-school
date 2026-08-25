@@ -4,6 +4,7 @@ import { Camera, Sparkles } from 'lucide-react';
 import { AnimatedSection } from '@/components/AnimatedSection';
 import PublicGalleryGrid from '@/components/PublicGalleryGrid';
 
+export const dynamic = 'force-static';
 export const revalidate = 60; // 60-second Edge Caching (ISR) for instant page loads
 
 export default async function GalleryPage() {
