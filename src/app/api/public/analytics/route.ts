@@ -73,13 +73,15 @@ export async function POST(request: Request) {
     }
 
     const ua = (userAgent || '').toLowerCase();
-
-    // Ignore automated bots, search crawlers, headless browsers, and datacenter monitoring nodes (e.g. Vercel NYC Edge, Googlebot)
-    if (/bot|crawler|spider|headless|vercel|lighthouse|pingdom|uptimerobot|google|inspect|monitor|probe|fetcher|slurp|facebookexternalhit|bingpreview/i.test(ua)) {
-      return NextResponse.json({ success: true, ignored: 'Bot or Automated Worker' });
-    }
-
     const { deviceType, deviceOs, browser } = parseDeviceDetails(userAgent || '', screenWidth);
+
+    // Ignore automated bots, search crawlers, headless browsers, serverless build pre-warmers, and Linux datacenter health check nodes
+    if (
+      /bot|crawler|spider|headless|vercel|lighthouse|pingdom|uptimerobot|google|inspect|monitor|probe|fetcher|slurp|facebookexternalhit|bingpreview|puppeteer|playwright|selenium|phantomjs/i.test(ua) ||
+      (deviceOs === 'Linux' && (!screenWidth || screenWidth >= 1920 || /x11|ubuntu|debian|centos|fedora|arch/i.test(ua)))
+    ) {
+      return NextResponse.json({ success: true, ignored: 'Bot, Headless Browser or Datacenter Worker' });
+    }
 
     // Prioritize client device IP location, fallback to Vercel/Cloudflare IP headers
     const headerCity = request.headers.get('x-vercel-ip-city') || request.headers.get('cf-ipcity');
