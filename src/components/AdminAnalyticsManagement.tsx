@@ -13,13 +13,12 @@ import {
   Activity, 
   Loader2, 
   Globe, 
-  Sparkles, 
   Repeat, 
-  Compass, 
-  BarChart3, 
-  ArrowUpRight,
-  ShieldCheck,
-  FileText
+  Calendar, 
+  Filter,
+  RefreshCw,
+  FileText,
+  X
 } from 'lucide-react';
 
 interface AnalyticsSummary {
@@ -83,10 +82,26 @@ export default function AdminAnalyticsManagement() {
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Date & Month Filter State
+  const [filterPreset, setFilterPreset] = useState<'ALL_TIME' | 'TODAY' | 'YESTERDAY' | 'THIS_MONTH' | 'LAST_MONTH' | 'CUSTOM'>('ALL_TIME');
+  const [selectedMonth, setSelectedMonth] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+
   const fetchAnalyticsData = async () => {
     try {
       setLoading(true);
-      const res = await fetch('/api/admin/analytics');
+      const params = new URLSearchParams();
+
+      if (filterPreset !== 'CUSTOM') {
+        params.append('preset', filterPreset);
+      } else {
+        if (selectedMonth) params.append('month', selectedMonth);
+        if (startDate) params.append('startDate', startDate);
+        if (endDate) params.append('endDate', endDate);
+      }
+
+      const res = await fetch(`/api/admin/analytics?${params.toString()}`);
       const data = await res.json();
       if (data.success) {
         setSummary(data.summary || null);
@@ -107,9 +122,14 @@ export default function AdminAnalyticsManagement() {
 
   useEffect(() => {
     fetchAnalyticsData();
-    const interval = setInterval(fetchAnalyticsData, 30000); // Auto refresh every 30 seconds
-    return () => clearInterval(interval);
-  }, []);
+  }, [filterPreset, selectedMonth, startDate, endDate]);
+
+  const handleResetFilters = () => {
+    setFilterPreset('ALL_TIME');
+    setSelectedMonth('');
+    setStartDate('');
+    setEndDate('');
+  };
 
   return (
     <div className="space-y-6 text-left select-none">
@@ -131,6 +151,155 @@ export default function AdminAnalyticsManagement() {
           {loading ? <Loader2 className="h-4 w-4 animate-spin text-slate-950" /> : <Activity className="h-4 w-4 text-slate-950" />}
           <span>{loading ? 'Refreshing...' : 'Refresh Live Traffic'}</span>
         </button>
+      </div>
+
+      {/* DATE & MONTH RANGE FILTER TOOLBAR */}
+      <div className="bg-white p-4 sm:p-5 rounded-3xl border border-sky-100 shadow-sm space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+          <div className="flex items-center space-x-2">
+            <Filter className="h-4 w-4 text-sky-600" />
+            <span className="text-xs font-extrabold text-slate-900 uppercase tracking-wider">Filter Traffic by Date & Month:</span>
+          </div>
+
+          {(filterPreset !== 'ALL_TIME' || selectedMonth || startDate || endDate) && (
+            <button
+              onClick={handleResetFilters}
+              className="text-[11px] font-bold text-rose-600 hover:text-rose-700 flex items-center space-x-1 self-start sm:self-auto bg-rose-50 px-2.5 py-1 rounded-lg border border-rose-200 transition"
+            >
+              <X className="h-3 w-3" />
+              <span>Reset Date Filters</span>
+            </button>
+          )}
+        </div>
+
+        {/* Filter Presets Row */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar scroll-smooth">
+          <button
+            type="button"
+            onClick={() => { setFilterPreset('ALL_TIME'); setSelectedMonth(''); setStartDate(''); setEndDate(''); }}
+            className={`px-3.5 py-2 rounded-xl text-xs font-extrabold transition flex items-center space-x-1.5 flex-shrink-0 border ${
+              filterPreset === 'ALL_TIME'
+                ? 'bg-sky-600 text-white border-sky-600 shadow-sm'
+                : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
+            }`}
+          >
+            <Globe className="h-3.5 w-3.5" />
+            <span>🌐 All Time</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => { setFilterPreset('TODAY'); setSelectedMonth(''); setStartDate(''); setEndDate(''); }}
+            className={`px-3.5 py-2 rounded-xl text-xs font-extrabold transition flex items-center space-x-1.5 flex-shrink-0 border ${
+              filterPreset === 'TODAY'
+                ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+                : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
+            }`}
+          >
+            <Activity className="h-3.5 w-3.5" />
+            <span>⚡ Today</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => { setFilterPreset('YESTERDAY'); setSelectedMonth(''); setStartDate(''); setEndDate(''); }}
+            className={`px-3.5 py-2 rounded-xl text-xs font-extrabold transition flex items-center space-x-1.5 flex-shrink-0 border ${
+              filterPreset === 'YESTERDAY'
+                ? 'bg-purple-600 text-white border-purple-600 shadow-sm'
+                : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
+            }`}
+          >
+            <Clock className="h-3.5 w-3.5" />
+            <span>📆 Yesterday</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => { setFilterPreset('THIS_MONTH'); setSelectedMonth(''); setStartDate(''); setEndDate(''); }}
+            className={`px-3.5 py-2 rounded-xl text-xs font-extrabold transition flex items-center space-x-1.5 flex-shrink-0 border ${
+              filterPreset === 'THIS_MONTH'
+                ? 'bg-amber-500 text-white border-amber-500 shadow-sm'
+                : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
+            }`}
+          >
+            <Calendar className="h-3.5 w-3.5" />
+            <span>🗓️ This Month</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => { setFilterPreset('LAST_MONTH'); setSelectedMonth(''); setStartDate(''); setEndDate(''); }}
+            className={`px-3.5 py-2 rounded-xl text-xs font-extrabold transition flex items-center space-x-1.5 flex-shrink-0 border ${
+              filterPreset === 'LAST_MONTH'
+                ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
+            }`}
+          >
+            <Calendar className="h-3.5 w-3.5" />
+            <span>📅 Last Month</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setFilterPreset('CUSTOM')}
+            className={`px-3.5 py-2 rounded-xl text-xs font-extrabold transition flex items-center space-x-1.5 flex-shrink-0 border ${
+              filterPreset === 'CUSTOM'
+                ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
+                : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
+            }`}
+          >
+            <Filter className="h-3.5 w-3.5" />
+            <span>📅 Custom Date & Month</span>
+          </button>
+        </div>
+
+        {/* Custom Month / Date Picker Panel */}
+        {filterPreset === 'CUSTOM' && (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-slate-100">
+            {/* Select Specific Month */}
+            <div className="space-y-1">
+              <label className="block text-[10px] font-mono font-bold text-slate-500 uppercase">Select Specific Month:</label>
+              <input
+                type="month"
+                value={selectedMonth}
+                onChange={(e) => {
+                  setSelectedMonth(e.target.value);
+                  setStartDate('');
+                  setEndDate('');
+                }}
+                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-sky-500"
+              />
+            </div>
+
+            {/* Start Date */}
+            <div className="space-y-1">
+              <label className="block text-[10px] font-mono font-bold text-slate-500 uppercase">Start Date:</label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => {
+                  setStartDate(e.target.value);
+                  setSelectedMonth('');
+                }}
+                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-sky-500"
+              />
+            </div>
+
+            {/* End Date */}
+            <div className="space-y-1">
+              <label className="block text-[10px] font-mono font-bold text-slate-500 uppercase">End Date:</label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => {
+                  setEndDate(e.target.value);
+                  setSelectedMonth('');
+                }}
+                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-sky-500"
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 4 Core Metric KPI Cards */}
@@ -401,7 +570,7 @@ export default function AdminAnalyticsManagement() {
         {recentActivity.length === 0 ? (
           <div className="py-12 text-center text-slate-400 space-y-2">
             <Activity className="h-8 w-8 mx-auto text-slate-300" />
-            <p className="text-xs font-medium">No live visitor activity recorded yet.</p>
+            <p className="text-xs font-medium">No visitor activity recorded for selected date filter.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
