@@ -9,16 +9,16 @@ import {
   LogIn, 
   LayoutDashboard, 
   GraduationCap, 
-  Home, 
   Info, 
   Image as ImageIcon, 
   Phone, 
   UserCheck, 
-  Sparkles,
   CreditCard,
   ChevronDown,
   Calendar,
-  BookOpen
+  ShieldCheck,
+  User,
+  Home
 } from 'lucide-react';
 import HeaderSearch from '@/components/HeaderSearch';
 
@@ -34,6 +34,7 @@ interface PublicHeaderProps {
 export default function PublicHeader({ session: initialSession = null }: PublicHeaderProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [aboutDropdownOpen, setAboutDropdownOpen] = useState(false);
+  const [portalDropdownOpen, setPortalDropdownOpen] = useState(false);
   const [session, setSession] = useState(initialSession);
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
@@ -61,10 +62,11 @@ export default function PublicHeader({ session: initialSession = null }: PublicH
     return () => { isMounted = false; };
   }, [initialSession]);
 
-  // Close mobile menu & dropdown on route change
+  // Close mobile menu & dropdowns on route change
   useEffect(() => {
     setIsOpen(false);
     setAboutDropdownOpen(false);
+    setPortalDropdownOpen(false);
   }, [pathname]);
 
   // Prevent background scroll when mobile menu is open
@@ -80,6 +82,7 @@ export default function PublicHeader({ session: initialSession = null }: PublicH
   }, [isOpen]);
 
   const isAboutActive = pathname === '/about' || pathname === '/annual-program';
+  const isPortalActive = pathname.startsWith('/portal') || pathname === '/parent-portal';
 
   return (
     <>
@@ -109,8 +112,8 @@ export default function PublicHeader({ session: initialSession = null }: PublicH
               </div>
             </Link>
 
-            {/* 2. Main Desktop Navigation Links (Clean, Spacious with About Dropdown) */}
-            <nav className="hidden lg:flex items-center space-x-6 xl:space-x-7">
+            {/* 2. Main Navigation Links */}
+            <nav className="hidden lg:flex items-center space-x-6 xl:space-x-8">
               <Link
                 href="/"
                 className={`text-xs font-extrabold tracking-wide uppercase transition-colors relative py-2 ${
@@ -138,7 +141,6 @@ export default function PublicHeader({ session: initialSession = null }: PublicH
                   {isAboutActive && <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-sky-500 rounded-full animate-fadeIn" />}
                 </button>
 
-                {/* Dropdown Menu Box */}
                 {aboutDropdownOpen && (
                   <div className="absolute top-full left-0 pt-2 w-64 animate-fadeIn z-50">
                     <div className="bg-white rounded-2xl shadow-xl border border-sky-100 p-2 space-y-1 text-left">
@@ -207,12 +209,13 @@ export default function PublicHeader({ session: initialSession = null }: PublicH
               </Link>
             </nav>
 
-            {/* 3. Right Action Group (Pay Fee, Parent Portal, Search, Login) */}
-            <div className="flex items-center space-x-2 sm:space-x-2.5">
-              {/* Pay Fee Button */}
+            {/* 3. Right Action Group (3 Harmonious Buttons: Search, Pay Fee & Portal Access Dropdown) */}
+            <div className="flex items-center space-x-2.5 sm:space-x-3">
+              
+              {/* Pay Fee Quick Action */}
               <Link
                 href="/pay-fee"
-                className={`hidden xl:inline-flex items-center space-x-1.5 text-xs font-bold px-3 py-1.5 rounded-full transition border ${
+                className={`hidden sm:inline-flex items-center space-x-1.5 text-xs font-bold px-3.5 py-2 rounded-full transition border ${
                   pathname === '/pay-fee'
                     ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
                     : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border-emerald-200'
@@ -223,50 +226,98 @@ export default function PublicHeader({ session: initialSession = null }: PublicH
                 <span>Pay Fee</span>
               </Link>
 
-              {/* Parent Portal Button */}
-              <Link
-                href="/parent-portal"
-                className={`hidden xl:inline-flex items-center space-x-1.5 text-xs font-bold px-3 py-1.5 rounded-full transition border ${
-                  pathname === '/parent-portal'
-                    ? 'bg-sky-600 text-white border-sky-600 shadow-xs'
-                    : 'bg-sky-50 text-sky-900 hover:bg-sky-100 border-sky-200'
-                }`}
-                title="Parent & Student Information Portal"
-              >
-                <GraduationCap className="h-3.5 w-3.5 text-sky-600" />
-                <span>Parent Portal</span>
-              </Link>
-
-              {/* Global Instant Search Trigger */}
+              {/* Global Search Capsule */}
               <HeaderSearch />
 
-              {/* Dynamic Authentication Button */}
-              {mounted && session ? (
-                <Link
-                  href={
-                    session.role === 'ADMIN'
-                      ? '/portal/admin'
-                      : session.role === 'TEACHER'
-                      ? '/portal/teacher'
-                      : '/parent-portal'
-                  }
-                  className="inline-flex items-center space-x-2 bg-gradient-to-r from-amber-400 via-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-xs px-4 py-2 rounded-full shadow-sm hover:shadow-md transition-all border border-amber-300 active:scale-95 flex-shrink-0"
-                >
-                  <LayoutDashboard className="h-3.5 w-3.5 text-slate-950" />
-                  <span className="hidden sm:inline">DASHBOARD</span>
-                  <span className="sm:hidden">PORTAL</span>
-                </Link>
-              ) : (
-                <Link
-                  href="/portal/login"
-                  className="inline-flex items-center space-x-2 bg-gradient-to-r from-amber-400 via-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-xs px-4 py-2 rounded-full shadow-sm hover:shadow-md transition-all border border-amber-300 active:scale-95 flex-shrink-0"
-                >
-                  <LogIn className="h-3.5 w-3.5 text-slate-950" />
-                  <span>PORTAL LOGIN</span>
-                </Link>
-              )}
+              {/* Master Portal Access Dropdown (Combines Parent Portal & Portal Login) */}
+              <div 
+                className="relative group"
+                onMouseEnter={() => setPortalDropdownOpen(true)}
+                onMouseLeave={() => setPortalDropdownOpen(false)}
+              >
+                {mounted && session ? (
+                  <Link
+                    href={
+                      session.role === 'ADMIN'
+                        ? '/portal/admin'
+                        : session.role === 'TEACHER'
+                        ? '/portal/teacher'
+                        : '/parent-portal'
+                    }
+                    className="inline-flex items-center space-x-2 bg-gradient-to-r from-amber-400 via-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-xs px-4 py-2 rounded-full shadow-sm hover:shadow-md transition-all border border-amber-300 active:scale-95 flex-shrink-0"
+                  >
+                    <LayoutDashboard className="h-3.5 w-3.5 text-slate-950" />
+                    <span className="hidden sm:inline">DASHBOARD</span>
+                    <span className="sm:hidden">PORTAL</span>
+                  </Link>
+                ) : (
+                  <button
+                    onClick={() => setPortalDropdownOpen(!portalDropdownOpen)}
+                    className="inline-flex items-center space-x-1.5 bg-gradient-to-r from-amber-400 via-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black text-xs px-4 py-2 rounded-full shadow-sm hover:shadow-md transition-all border border-amber-300 active:scale-95 flex-shrink-0"
+                  >
+                    <LogIn className="h-3.5 w-3.5 text-slate-950" />
+                    <span>PORTAL LOGIN</span>
+                    <ChevronDown className={`h-3 w-3 text-slate-950 transition-transform ${portalDropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                )}
 
-              {/* Mobile Hamburger Menu Button */}
+                {/* Portal Access Dropdown Menu */}
+                {!session && portalDropdownOpen && (
+                  <div className="absolute top-full right-0 pt-2 w-72 animate-fadeIn z-50">
+                    <div className="bg-white rounded-2xl shadow-2xl border border-amber-200 p-2.5 space-y-1.5 text-left">
+                      <div className="px-3 py-1.5 border-b border-slate-100">
+                        <span className="text-[10px] font-mono font-bold text-amber-700 uppercase tracking-widest block">
+                          PORTAL ACCESS CENTER
+                        </span>
+                      </div>
+
+                      {/* Parent & Student Portal */}
+                      <Link
+                        href="/parent-portal"
+                        className="flex items-start space-x-3 p-2.5 rounded-xl hover:bg-sky-50 transition text-slate-800 group"
+                      >
+                        <div className="p-2 bg-sky-100 text-sky-700 rounded-lg group-hover:bg-sky-600 group-hover:text-white transition mt-0.5">
+                          <GraduationCap className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <span className="text-xs font-bold block text-slate-900">Parent & Student Portal</span>
+                          <span className="text-[10px] text-slate-500 block leading-tight">Look up student records & report cards</span>
+                        </div>
+                      </Link>
+
+                      {/* Teacher Console */}
+                      <Link
+                        href="/portal/login"
+                        className="flex items-start space-x-3 p-2.5 rounded-xl hover:bg-amber-50 transition text-slate-800 group"
+                      >
+                        <div className="p-2 bg-amber-100 text-amber-800 rounded-lg group-hover:bg-amber-500 group-hover:text-slate-950 transition mt-0.5">
+                          <UserCheck className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <span className="text-xs font-bold block text-slate-900">Teacher Academics Console</span>
+                          <span className="text-[10px] text-slate-500 block leading-tight">Faculty login for attendance & grades</span>
+                        </div>
+                      </Link>
+
+                      {/* Admin Portal */}
+                      <Link
+                        href="/portal/login"
+                        className="flex items-start space-x-3 p-2.5 rounded-xl hover:bg-slate-100 transition text-slate-800 group border-t border-slate-100"
+                      >
+                        <div className="p-2 bg-slate-100 text-slate-800 rounded-lg group-hover:bg-slate-900 group-hover:text-white transition mt-0.5">
+                          <ShieldCheck className="h-4 w-4" />
+                        </div>
+                        <div>
+                          <span className="text-xs font-bold block text-slate-900">Administrator Control Center</span>
+                          <span className="text-[10px] text-slate-500 block leading-tight">System settings, staff & analytics</span>
+                        </div>
+                      </Link>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Mobile Hamburger Menu Trigger */}
               <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="lg:hidden p-2 text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition focus:outline-none"
@@ -279,7 +330,7 @@ export default function PublicHeader({ session: initialSession = null }: PublicH
         </div>
       </header>
 
-      {/* Mobile Drawer Overlay & Slide-Out Navigation */}
+      {/* Mobile Slide-Out Drawer Navigation */}
       {isOpen && (
         <div className="fixed inset-0 z-50 lg:hidden flex justify-end">
           <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs transition-opacity" onClick={() => setIsOpen(false)} />
@@ -376,7 +427,6 @@ export default function PublicHeader({ session: initialSession = null }: PublicH
                     <CreditCard className="h-4 w-4 text-emerald-700" />
                     <span>Pay Tuition Fees Online</span>
                   </div>
-                  <Sparkles className="h-4 w-4 text-emerald-600" />
                 </Link>
 
                 <Link
@@ -387,7 +437,6 @@ export default function PublicHeader({ session: initialSession = null }: PublicH
                     <GraduationCap className="h-4 w-4 text-sky-700" />
                     <span>Parent & Student Portal</span>
                   </div>
-                  <Sparkles className="h-4 w-4 text-sky-600" />
                 </Link>
               </div>
             </div>
