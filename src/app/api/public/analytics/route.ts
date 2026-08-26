@@ -85,6 +85,7 @@ export async function POST(request: Request) {
       pageTitle = 'Home',
       userAgent = '',
       screenWidth = 1200,
+      exactDeviceModel = '',
       visitCount = 1,
       isNewVisitor = true,
       durationSeconds = 15,
@@ -99,7 +100,8 @@ export async function POST(request: Request) {
     }
 
     const ua = (userAgent || '').toLowerCase();
-    const { deviceType, deviceOs, browser } = parseDeviceDetails(userAgent || '', screenWidth);
+    const { deviceType, deviceOs, browser, deviceName: parsedDeviceName } = parseDeviceDetails(userAgent || '', screenWidth);
+    const finalDeviceName = exactDeviceModel || parsedDeviceName;
 
     // Ignore automated bots, search crawlers, headless browsers, serverless build pre-warmers, and Linux datacenter health check nodes
     if (
