@@ -127,6 +127,13 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
           heading: 'SYSTEM & SAFETY',
           items: [
             {
+              name: 'Admin Audit & Change Log',
+              href: '/portal/admin?tab=audit-log',
+              isActive: pathname === '/portal/admin' && currentTab === 'audit-log',
+              icon: KeyRound,
+              badge: 'STAFF'
+            },
+            {
               name: 'Google Drive Backups',
               href: '/portal/admin?tab=backups',
               isActive: pathname === '/portal/admin' && currentTab === 'backups',

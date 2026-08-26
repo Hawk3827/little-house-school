@@ -12,6 +12,7 @@ import AdminBackupManagement from '@/components/AdminBackupManagement';
 import AdminFeeManagement from '@/components/AdminFeeManagement';
 import AdminOnlinePayments from '@/components/AdminOnlinePayments';
 import AdminAnalyticsManagement from '@/components/AdminAnalyticsManagement';
+import AdminAuditLogManagement from '@/components/AdminAuditLogManagement';
 import { 
   LayoutDashboard,
   Users, 
@@ -564,6 +565,13 @@ export default function AdminDashboardConsole({
       {activeTab === 'online-payments' && (
         <div className="animate-fadeIn">
           <AdminOnlinePayments />
+        </div>
+      )}
+
+      {/* VIEW: ADMIN AUDIT & CHANGE RECORDS LOG */}
+      {activeTab === 'audit-log' && (
+        <div className="animate-fadeIn">
+          <AdminAuditLogManagement />
         </div>
       )}
 

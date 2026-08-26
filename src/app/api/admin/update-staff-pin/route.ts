@@ -44,6 +44,19 @@ export async function POST(request: Request) {
       data: { securityPin: cleanPin },
     });
 
+    try {
+      await prisma.adminAuditLog.create({
+        data: {
+          adminEmail: session.email || 'admin@school.com',
+          adminName: (session as any).name || 'Admin Staff',
+          actionType: 'SECURITY',
+          category: 'SECURITY',
+          targetName: `Staff Security PIN (${updatedUser.email})`,
+          description: `Updated staff accountability PIN for ${updatedUser.email}`,
+        },
+      });
+    } catch (e) {}
+
     return NextResponse.json({
       success: true,
       message: `Security PIN updated to "${cleanPin}" successfully for ${updatedUser.email}!`,

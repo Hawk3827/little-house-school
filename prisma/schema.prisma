@@ -249,3 +249,15 @@ model WebsiteAnalytics {
   isNewVisitor    Boolean  @default(true)
   createdAt       DateTime @default(now())
 }
+
+model AdminAuditLog {
+  id           String   @id @default(uuid())
+  adminEmail   String
+  adminName    String
+  actionType   String   // "CREATE", "UPDATE", "DELETE", "SECURITY", "PAYMENT"
+  category     String   // "STUDENT", "TEACHER", "FEE_PAYMENT", "ANNOUNCEMENT", "GALLERY", "SECURITY", "BACKUP"
+  targetName   String?
+  description  String
+  ipAddress    String?  @default("127.0.0.1")
+  createdAt    DateTime @default(now())
+}
