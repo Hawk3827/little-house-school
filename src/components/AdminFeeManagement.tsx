@@ -63,12 +63,39 @@ const CLASSES_LIST = [
   'Lower KG', 'Upper KG', 'Nursery', 'Play-Group'
 ];
 
+const PURE_CLASSES = [
+  'Class I', 'Class II', 'Class III', 'Class IV', 'Class V', 'Class VI',
+  'Lower KG', 'Upper KG', 'Nursery', 'Play-Group'
+];
+
 export default function AdminFeeManagement() {
   const [students, setStudents] = useState<StudentMatrixItem[]>([]);
   const [payments, setPayments] = useState<FeePaymentRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedClass, setSelectedClass] = useState('ALL CLASSES');
+
+  // Custom Spreadsheet Export Modal State
+  const [exportModalOpen, setExportModalOpen] = useState(false);
+  const [exportScope, setExportScope] = useState<'WHOLE_SCHOOL' | 'SINGLE_CLASS' | 'MULTI_CLASS'>('WHOLE_SCHOOL');
+  const [exportSingleClass, setExportSingleClass] = useState('Class I');
+  const [exportSelectedClasses, setExportSelectedClasses] = useState<string[]>([...PURE_CLASSES]);
+
+  const toggleExportClassSelection = (cls: string) => {
+    if (exportSelectedClasses.includes(cls)) {
+      setExportSelectedClasses(exportSelectedClasses.filter((c) => c !== cls));
+    } else {
+      setExportSelectedClasses([...exportSelectedClasses, cls]);
+    }
+  };
+
+  const selectAllExportClasses = () => {
+    setExportSelectedClasses([...PURE_CLASSES]);
+  };
+
+  const deselectAllExportClasses = () => {
+    setExportSelectedClasses([]);
+  };
 
   // Quick Cell Fee Marking Modal State
   const [cellModalOpen, setCellModalOpen] = useState(false);
@@ -262,10 +289,34 @@ export default function AdminFeeManagement() {
     );
   };
 
-  // Export Spreadsheet CSV for active class / roster
-  const exportCSV = () => {
+  // Custom Spreadsheet Export (Whole School, Single Class, or Selected Multi-Classes)
+  const executeSpreadsheetExport = () => {
+    let targetClasses: string[] = [];
+
+    if (exportScope === 'WHOLE_SCHOOL') {
+      targetClasses = PURE_CLASSES;
+    } else if (exportScope === 'SINGLE_CLASS') {
+      targetClasses = [exportSingleClass];
+    } else {
+      targetClasses = exportSelectedClasses;
+    }
+
+    if (targetClasses.length === 0) {
+      alert('Please select at least one class to export.');
+      return;
+    }
+
+    const targetStudents = students.filter((s) => 
+      targetClasses.some((c) => c.toLowerCase() === s.class.toLowerCase())
+    );
+
+    if (targetStudents.length === 0) {
+      alert('No student records found for the selected class(es).');
+      return;
+    }
+
     const headers = ['Admission No', 'Student Name', 'Class', 'Phone', ...ACADEMIC_MONTHS, 'Total Paid Months', 'Total Amount Paid (INR)'];
-    const rows = classStudents.map((s) => {
+    const rows = targetStudents.map((s) => {
       let paidCount = 0;
       const row = [s.admissionNo, s.name, s.class, s.phone || 'N/A'];
       
@@ -284,9 +335,15 @@ export default function AdminFeeManagement() {
       return row;
     });
 
+    const scopeTitle = exportScope === 'WHOLE_SCHOOL'
+      ? 'Whole_School_All_Students'
+      : exportScope === 'SINGLE_CLASS'
+      ? exportSingleClass.replace(/\s+/g, '_')
+      : `Combined_${targetClasses.length}_Classes`;
+
     const metadataHeader = [
       `"LITTLE HOUSE SCHOOL - OFFICIAL MONTHLY FEE REGISTER (2026-2027)"`,
-      `"Filter View: ${selectedClass} | Total Students: ${classStudents.length} | Exported: ${new Date().toLocaleString()}"`,
+      `"Export Scope: ${exportScope} | Classes Included: ${targetClasses.join(', ')} | Total Students: ${targetStudents.length} | Exported: ${new Date().toLocaleString()}"`,
       `""`,
     ].join('\n');
 
@@ -295,8 +352,10 @@ export default function AdminFeeManagement() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `LHS_Fee_Spreadsheet_${selectedClass.replace(/\s+/g, '_')}_2026.csv`;
+    link.download = `LHS_Fee_Register_${scopeTitle}_2026.csv`;
     link.click();
+
+    setExportModalOpen(false);
   };
 
   return (
@@ -322,12 +381,12 @@ export default function AdminFeeManagement() {
           </button>
 
           <button
-            onClick={exportCSV}
+            onClick={() => setExportModalOpen(true)}
             className="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs rounded-2xl transition flex items-center space-x-1.5 shadow-lg active:scale-95"
-            title="Download full fee register matrix in Excel / CSV format"
+            title="Download fee register spreadsheet for Whole School, Single Class, or Multiple Selected Classes"
           >
             <FileSpreadsheet className="h-4 w-4" />
-            <span>Export Excel</span>
+            <span>Export Spreadsheet</span>
           </button>
         </div>
       </div>
@@ -732,6 +791,178 @@ export default function AdminFeeManagement() {
                 className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition"
               >
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CUSTOM SPREADSHEET EXPORT OPTIONS MODAL */}
+      {exportModalOpen && (
+        <div 
+          className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeIn"
+          onClick={() => setExportModalOpen(false)}
+        >
+          <div 
+            className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl border border-sky-100 space-y-6 text-left"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b pb-4">
+              <div className="space-y-0.5">
+                <span className="text-[10px] font-mono font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded uppercase">
+                  CUSTOM SPREADSHEET EXPORT
+                </span>
+                <h3 className="text-xl font-extrabold text-slate-900">Export Fee Register</h3>
+              </div>
+              <button 
+                onClick={() => setExportModalOpen(false)}
+                className="p-2 rounded-full hover:bg-slate-100 text-slate-400"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                Select Export Scope:
+              </label>
+
+              {/* Scope Selector Pills */}
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setExportScope('WHOLE_SCHOOL')}
+                  className={`p-3 rounded-2xl text-xs font-extrabold text-center transition border ${
+                    exportScope === 'WHOLE_SCHOOL'
+                      ? 'bg-emerald-600 text-white border-emerald-600 shadow-md'
+                      : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
+                  }`}
+                >
+                  🏫 Whole School
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setExportScope('SINGLE_CLASS')}
+                  className={`p-3 rounded-2xl text-xs font-extrabold text-center transition border ${
+                    exportScope === 'SINGLE_CLASS'
+                      ? 'bg-sky-600 text-white border-sky-600 shadow-md'
+                      : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
+                  }`}
+                >
+                  🎒 Single Class
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setExportScope('MULTI_CLASS')}
+                  className={`p-3 rounded-2xl text-xs font-extrabold text-center transition border ${
+                    exportScope === 'MULTI_CLASS'
+                      ? 'bg-purple-600 text-white border-purple-600 shadow-md'
+                      : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border-slate-200'
+                  }`}
+                >
+                  📑 Multiple Classes
+                </button>
+              </div>
+
+              {/* SCOPE A: WHOLE SCHOOL */}
+              {exportScope === 'WHOLE_SCHOOL' && (
+                <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl space-y-1 text-xs text-emerald-900">
+                  <span className="font-extrabold block">Full School Export ({students.length} Total Students)</span>
+                  <p className="text-emerald-700 font-normal">
+                    Generates a complete spreadsheet matrix containing all enrolled students across all 10 academic classes.
+                  </p>
+                </div>
+              )}
+
+              {/* SCOPE B: SINGLE CLASS */}
+              {exportScope === 'SINGLE_CLASS' && (
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-slate-700">Choose Particular Class:</label>
+                  <select
+                    value={exportSingleClass}
+                    onChange={(e) => setExportSingleClass(e.target.value)}
+                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-sky-500"
+                  >
+                    {PURE_CLASSES.map((cls) => (
+                      <option key={cls} value={cls}>
+                        {cls} ({students.filter((s) => s.class.toLowerCase() === cls.toLowerCase()).length} Students)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* SCOPE C: MULTI CLASS SELECTION */}
+              {exportScope === 'MULTI_CLASS' && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-bold text-slate-700">
+                      Select Classes to Combine ({exportSelectedClasses.length} Selected):
+                    </label>
+                    <div className="space-x-2 text-[11px] font-bold">
+                      <button
+                        type="button"
+                        onClick={selectAllExportClasses}
+                        className="text-sky-600 hover:underline"
+                      >
+                        Select All
+                      </button>
+                      <span>•</span>
+                      <button
+                        type="button"
+                        onClick={deselectAllExportClasses}
+                        className="text-slate-400 hover:underline"
+                      >
+                        Deselect All
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto p-3 bg-slate-50 border border-slate-200 rounded-2xl">
+                    {PURE_CLASSES.map((cls) => {
+                      const isChecked = exportSelectedClasses.includes(cls);
+                      const count = students.filter((s) => s.class.toLowerCase() === cls.toLowerCase()).length;
+                      return (
+                        <label
+                          key={cls}
+                          className={`flex items-center space-x-2.5 p-2 rounded-xl border text-xs font-semibold cursor-pointer transition ${
+                            isChecked
+                              ? 'bg-purple-50 border-purple-300 text-purple-900 font-extrabold'
+                              : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => toggleExportClassSelection(cls)}
+                            className="rounded text-purple-600 focus:ring-purple-500"
+                          />
+                          <span className="flex-1">{cls}</span>
+                          <span className="text-[10px] font-mono text-slate-400">({count})</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="pt-3 border-t flex items-center justify-end space-x-3">
+              <button
+                type="button"
+                onClick={() => setExportModalOpen(false)}
+                className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                onClick={executeSpreadsheetExport}
+                className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs rounded-xl transition shadow-md flex items-center space-x-2"
+              >
+                <Download className="h-4 w-4" />
+                <span>Generate & Download Spreadsheet</span>
               </button>
             </div>
           </div>
