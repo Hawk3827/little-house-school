@@ -190,20 +190,32 @@ export async function GET(request: Request) {
     const limitParam = searchParams.get('limit') || '500';
     const limitNum = limitParam === 'all' ? allAnalytics.length : Math.max(10, parseInt(limitParam, 10) || 500);
 
-    const recentActivity = allAnalytics.slice(0, limitNum).map((a) => ({
-      id: a.id,
-      sessionId: a.sessionId,
-      location: `${a.locationCity}, ${a.locationRegion}`,
-      deviceType: a.deviceType,
-      deviceOs: a.deviceOs,
-      browser: a.browser,
-      pagePath: a.pagePath,
-      pageTitle: a.pageTitle,
-      durationSeconds: a.durationSeconds,
-      visitCount: a.visitCount,
-      isNewVisitor: a.isNewVisitor,
-      createdAt: a.createdAt,
-    }));
+    // Map cumulative hits per physical device fingerprint
+    const fingerprintVisitCounts: Record<string, number> = {};
+    visitorFingerprintMap.forEach((hits, fp) => {
+      fingerprintVisitCounts[fp] = hits.length;
+    });
+
+    const recentActivity = allAnalytics.slice(0, limitNum).map((a) => {
+      const fp = `${a.visitorIp || '127.0.0.1'}_${a.deviceOs}_${a.browser}_${a.locationCity}`;
+      const deviceTotalHits = fingerprintVisitCounts[fp] || 1;
+      const computedVisitCount = Math.max(a.visitCount || 1, deviceTotalHits);
+
+      return {
+        id: a.id,
+        sessionId: a.sessionId,
+        location: `${a.locationCity}, ${a.locationRegion}`,
+        deviceType: a.deviceType,
+        deviceOs: a.deviceOs,
+        browser: a.browser,
+        pagePath: a.pagePath,
+        pageTitle: a.pageTitle,
+        durationSeconds: a.durationSeconds,
+        visitCount: computedVisitCount,
+        isNewVisitor: computedVisitCount <= 1,
+        createdAt: a.createdAt,
+      };
+    });
 
     return NextResponse.json({
       success: true,

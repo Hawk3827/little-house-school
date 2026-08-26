@@ -93,6 +93,23 @@ export async function POST(request: Request) {
     const region = locationRegion || (headerRegion ? decodeURIComponent(headerRegion) : 'Manipur');
     const country = locationCountry || headerCountry || 'India';
 
+    // Calculate cumulative physical visit count for this device
+    const existingHitsCount = await prisma.websiteAnalytics.count({
+      where: {
+        OR: [
+          { sessionId },
+          {
+            visitorIp: clientIp,
+            deviceOs,
+            browser,
+            locationCity: city,
+          },
+        ],
+      },
+    });
+
+    const cumulativeVisitCount = Math.max(visitCount || 1, existingHitsCount + 1);
+
     const record = await prisma.websiteAnalytics.create({
       data: {
         sessionId,
@@ -106,8 +123,8 @@ export async function POST(request: Request) {
         pagePath,
         pageTitle,
         durationSeconds: Math.max(5, durationSeconds),
-        visitCount: Math.max(1, visitCount),
-        isNewVisitor: visitCount <= 1,
+        visitCount: cumulativeVisitCount,
+        isNewVisitor: cumulativeVisitCount <= 1,
       },
     });
 
