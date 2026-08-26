@@ -35,13 +35,9 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "LITTLE HOUSE Administration" }],
   icons: {
-    icon: [
-      { url: "/favicon.ico", sizes: "any" },
-      { url: "/icon.png", type: "image/png", sizes: "512x512" },
-      { url: "/school-logo.png", type: "image/png", sizes: "512x512" },
-    ],
-    shortcut: "/favicon.ico",
-    apple: "/apple-touch-icon.png",
+    icon: "/school-logo.png?v=99",
+    shortcut: "/school-logo.png?v=99",
+    apple: "/school-logo.png?v=99",
   },
   openGraph: {
     title: "LITTLE HOUSE • A Family of Learning (Waiton Lamkhai)",
@@ -87,12 +83,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <head>
-        <link rel="icon" href="/school-logo.png?v=2026" type="image/png" sizes="any" />
-        <link rel="icon" href="/favicon.ico?v=2026" sizes="any" />
-        <link rel="icon" type="image/png" sizes="32x32" href="/icon.png?v=2026" />
-        <link rel="icon" type="image/png" sizes="192x192" href="/icon.png?v=2026" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=2026" />
-        <link rel="shortcut icon" href="/school-logo.png?v=2026" />
+        <link rel="icon" href="/school-logo.png?v=99" type="image/png" sizes="any" />
+        <link rel="apple-touch-icon" href="/school-logo.png?v=99" />
+        <link rel="shortcut icon" href="/school-logo.png?v=99" />
         <link rel="preload" as="image" href="/hero-bg.webp" type="image/webp" fetchPriority="high" />
         <StructuredData />
       </head>
