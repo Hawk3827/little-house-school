@@ -18,7 +18,11 @@ import {
   Activity,
   CheckCircle2,
   Lock,
-  ArrowUpDown
+  ArrowUpDown,
+  Trash2,
+  Calendar,
+  AlertTriangle,
+  X
 } from 'lucide-react';
 
 interface AuditLogItem {
@@ -39,6 +43,12 @@ export default function AdminAuditLogManagement() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [limit, setLimit] = useState('100');
+
+  // Purge & Delete Modal State
+  const [purgeModalOpen, setPurgeModalOpen] = useState(false);
+  const [selectedTimeline, setSelectedTimeline] = useState('30_DAYS');
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchAuditLogs = async () => {
     setLoading(true);
@@ -66,6 +76,32 @@ export default function AdminAuditLogManagement() {
     }, 5000);
     return () => clearInterval(interval);
   }, [selectedCategory, limit]);
+
+  // Handle Single Entry Deletion
+  const handleDeleteRecord = async (id: string) => {
+    if (!confirm('Are you sure you want to remove this audit log entry from the change records?')) return;
+    setDeletingId(id);
+    try {
+      const res = await fetch(`/api/admin/audit-records?id=${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        setLogs(logs.filter((l) => l.id !== id));
+      }
+    } catch (e) {}
+    setDeletingId(null);
+  };
+
+  // Handle Timeline Audit Purge
+  const handleTimelinePurge = async () => {
+    setIsDeleting(true);
+    try {
+      const res = await fetch(`/api/admin/audit-records?timeline=${selectedTimeline}`, { method: 'DELETE' });
+      if (res.ok) {
+        setPurgeModalOpen(false);
+        fetchAuditLogs();
+      }
+    } catch (e) {}
+    setIsDeleting(false);
+  };
 
   if (accessForbidden) {
     return (
@@ -118,7 +154,13 @@ export default function AdminAuditLogManagement() {
     document.body.removeChild(link);
   };
 
-  const getCategoryBadge = (category: string) => {
+  const getCategoryBadge = (category: string, actionType?: string, description?: string) => {
+    const isDeleteAction = actionType === 'DELETE' || (description && description.toLowerCase().includes('deleted'));
+
+    if (isDeleteAction) {
+      return <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[10px] font-mono font-black bg-red-100 text-red-800 border border-red-300 animate-pulse">🗑️ DELETED</span>;
+    }
+
     switch (category) {
       case 'SECURITY':
         return <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[10px] font-mono font-bold bg-amber-100 text-amber-800 border border-amber-200">🔐 SECURITY</span>;
@@ -154,15 +196,25 @@ export default function AdminAuditLogManagement() {
             Admin Change & Audit Records
           </h2>
           <p className="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
-            Real-time record of all administrative changes made by other admins, staff officers, and teachers across student rosters, fee payments, security settings, and announcements.
+            Real-time record of all administrative changes made by other admins, staff officers, and teachers across student rosters, fee payments, media deletions, security settings, and announcements.
           </p>
         </div>
 
-        <div className="flex items-center space-x-3 z-10">
+        <div className="flex flex-wrap items-center gap-2.5 z-10">
+          <button
+            type="button"
+            onClick={() => setPurgeModalOpen(true)}
+            className="px-3.5 py-2.5 bg-red-600/90 hover:bg-red-500 text-white rounded-2xl font-bold text-xs flex items-center space-x-2 backdrop-blur-md border border-red-400/30 transition shadow-sm"
+            title="Purge logs by timeline retention"
+          >
+            <Trash2 className="h-4 w-4" />
+            <span>Timeline Purge</span>
+          </button>
+
           <button
             type="button"
             onClick={fetchAuditLogs}
-            className="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-2xl font-bold text-xs flex items-center space-x-2 backdrop-blur-md border border-white/10 transition shadow-sm"
+            className="px-3.5 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-2xl font-bold text-xs flex items-center space-x-2 backdrop-blur-md border border-white/10 transition shadow-sm"
           >
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             <span>Refresh</span>
@@ -260,6 +312,7 @@ export default function AdminAuditLogManagement() {
                   <th className="py-3 px-4 bg-slate-900">Category</th>
                   <th className="py-3 px-4 bg-slate-900">Target / Subject</th>
                   <th className="py-3 px-4 bg-slate-900">Exact Change Description</th>
+                  <th className="py-3 px-4 bg-slate-900 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 font-medium bg-white">
@@ -285,7 +338,7 @@ export default function AdminAuditLogManagement() {
                     </td>
 
                     <td className="py-3.5 px-4 whitespace-nowrap">
-                      {getCategoryBadge(log.category)}
+                      {getCategoryBadge(log.category, log.actionType, log.description)}
                     </td>
 
                     <td className="py-3.5 px-4 font-bold text-slate-800 whitespace-nowrap">
@@ -295,6 +348,18 @@ export default function AdminAuditLogManagement() {
                     <td className="py-3.5 px-4 text-slate-700 font-medium max-w-md">
                       <span className="leading-relaxed">{log.description}</span>
                     </td>
+
+                    <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteRecord(log.id)}
+                        disabled={deletingId === log.id}
+                        className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                        title="Delete this audit record entry"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -302,6 +367,78 @@ export default function AdminAuditLogManagement() {
           </div>
         )}
       </div>
+
+      {/* Timeline Audit Purge Modal */}
+      {purgeModalOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-5 border border-slate-200 animate-scaleUp">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center space-x-2 text-red-600 font-bold text-base">
+                <Trash2 className="h-5 w-5" />
+                <span>Timeline Audit Log Purge</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPurgeModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 p-1 rounded-full hover:bg-slate-100"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-600 leading-relaxed font-medium">
+              Select a timeline retention threshold below to permanently clean up administrative change log records:
+            </p>
+
+            <div className="space-y-2">
+              {[
+                { id: '7_DAYS', label: '⏳ Purge Logs Older Than 7 Days' },
+                { id: '30_DAYS', label: '⏳ Purge Logs Older Than 30 Days' },
+                { id: '90_DAYS', label: '⏳ Purge Logs Older Than 90 Days' },
+                { id: 'PURGE_ALL', label: '💥 Purge ALL Audit Log Records' },
+              ].map((opt) => (
+                <label
+                  key={opt.id}
+                  className={`flex items-center justify-between p-3.5 rounded-2xl border cursor-pointer transition ${
+                    selectedTimeline === opt.id
+                      ? 'border-indigo-600 bg-indigo-50/50 font-extrabold text-indigo-900'
+                      : 'border-slate-200 hover:bg-slate-50 text-slate-700'
+                  }`}
+                >
+                  <span className="text-xs font-semibold">{opt.label}</span>
+                  <input
+                    type="radio"
+                    name="timeline"
+                    value={opt.id}
+                    checked={selectedTimeline === opt.id}
+                    onChange={() => setSelectedTimeline(opt.id)}
+                    className="accent-indigo-600"
+                  />
+                </label>
+              ))}
+            </div>
+
+            <div className="flex items-center space-x-3 pt-3">
+              <button
+                type="button"
+                onClick={() => setPurgeModalOpen(false)}
+                className="w-1/2 py-2.5 border border-slate-200 rounded-2xl text-xs font-bold text-slate-600 hover:bg-slate-50 transition"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleTimelinePurge}
+                disabled={isDeleting}
+                className="w-1/2 py-2.5 bg-red-600 hover:bg-red-500 text-white rounded-2xl text-xs font-bold transition shadow-md flex items-center justify-center space-x-1.5"
+              >
+                <Trash2 className="h-4 w-4" />
+                <span>{isDeleting ? 'Purging...' : 'Execute Purge'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

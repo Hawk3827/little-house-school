@@ -224,3 +224,54 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message || 'Failed to create audit log' }, { status: 500 });
   }
 }
+
+// DELETE: Remove individual audit entry OR purge audit logs by timeline
+export async function DELETE(request: Request) {
+  try {
+    const session = await getSession();
+    if (!session || session.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+    const timeline = searchParams.get('timeline'); // '7_DAYS' | '30_DAYS' | '90_DAYS' | 'PURGE_ALL'
+
+    if (id) {
+      // If deleting a specific AdminAuditLog row
+      if (!id.startsWith('fee_') && !id.startsWith('usr_') && !id.startsWith('gal_') && !id.startsWith('ann_')) {
+        await prisma.adminAuditLog.delete({ where: { id } }).catch(() => {});
+      }
+      return NextResponse.json({ success: true, message: 'Audit entry removed successfully.' });
+    }
+
+    if (timeline) {
+      let cutoffDate: Date | null = null;
+      const now = new Date();
+
+      if (timeline === '7_DAYS') {
+        cutoffDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      } else if (timeline === '30_DAYS') {
+        cutoffDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      } else if (timeline === '90_DAYS') {
+        cutoffDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+      } else if (timeline === 'PURGE_ALL') {
+        await prisma.adminAuditLog.deleteMany({});
+        return NextResponse.json({ success: true, message: 'All audit log records purged successfully.' });
+      }
+
+      if (cutoffDate) {
+        await prisma.adminAuditLog.deleteMany({
+          where: {
+            createdAt: { lt: cutoffDate },
+          },
+        });
+        return NextResponse.json({ success: true, message: `Audit logs older than ${timeline.replace('_', ' ')} purged successfully.` });
+      }
+    }
+
+    return NextResponse.json({ error: 'Specify an entry ID or timeline parameter to delete.' }, { status: 400 });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message || 'Failed to delete audit log entry' }, { status: 500 });
+  }
+}
