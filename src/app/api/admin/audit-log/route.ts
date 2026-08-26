@@ -52,10 +52,65 @@ export async function GET(request: Request) {
       };
     });
 
-    // 3. Fetch Announcements published by admins
+    // 3. Fetch Student Roster & Teacher Additions
+    const userRecords = await prisma.user.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: limitNum,
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        createdAt: true,
+        profile: {
+          select: {
+            name: true,
+            admissionNo: true,
+          },
+        },
+      },
+    });
+
+    const userAuditItems = userRecords.map((u) => {
+      const nameStr = u.profile?.name || u.email;
+      const isStudent = u.role === 'STUDENT';
+      const isTeacher = u.role === 'TEACHER';
+      const isAdminRole = u.role === 'ADMIN';
+
+      return {
+        id: `usr_${u.id}`,
+        adminEmail: 'admin@school.com',
+        adminName: 'Admin Office',
+        actionType: 'CREATE',
+        category: isStudent ? 'STUDENT' : isTeacher ? 'TEACHER' : 'SECURITY',
+        targetName: `${isStudent ? 'Student' : isTeacher ? 'Teacher' : 'Admin'}: ${nameStr}`,
+        description: isStudent
+          ? `Enrolled new student ${nameStr} (Adm #${u.profile?.admissionNo || 'Auto'}) into school roster`
+          : `Created new ${u.role.toLowerCase()} account for ${nameStr} (${u.email})`,
+        createdAt: u.createdAt.toISOString(),
+      };
+    });
+
+    // 4. Fetch Online Admission Applications & Verifications
+    const admissions = await prisma.admission.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+    });
+
+    const admissionAuditItems = admissions.map((adm) => ({
+      id: `adm_${adm.id}`,
+      adminEmail: 'admin@school.com',
+      adminName: adm.verifiedBy || 'Admin Admissions Desk',
+      actionType: adm.verificationStatus === 'VERIFIED' ? 'UPDATE' : 'CREATE',
+      category: 'STUDENT',
+      targetName: `Admission: ${adm.studentName} (${adm.grade})`,
+      description: `Processed online admission for ${adm.studentName} (${adm.grade}) - Status: ${adm.verificationStatus} (${adm.verificationNotes || 'Application received'})`,
+      createdAt: adm.createdAt.toISOString(),
+    }));
+
+    // 5. Fetch Announcements published by admins
     const announcements = await prisma.announcement.findMany({
       orderBy: { createdAt: 'desc' },
-      take: 25,
+      take: 50,
       select: {
         id: true,
         title: true,
@@ -76,10 +131,10 @@ export async function GET(request: Request) {
       createdAt: ann.createdAt.toISOString(),
     }));
 
-    // 4. Fetch School Gallery uploads
+    // 6. Fetch School Gallery uploads
     const galleryItems = await prisma.galleryItem.findMany({
       orderBy: { createdAt: 'desc' },
-      take: 25,
+      take: 50,
     });
 
     const galleryAuditItems = galleryItems.map((g) => ({
@@ -93,12 +148,32 @@ export async function GET(request: Request) {
       createdAt: g.createdAt.toISOString(),
     }));
 
-    // 5. Combine and Sort all administrative change records in descending chronological order
+    // 7. Fetch Calendar & Exam Events
+    const events = await prisma.event.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+    });
+
+    const eventAuditItems = events.map((ev) => ({
+      id: `ev_${ev.id}`,
+      adminEmail: 'admin@school.com',
+      adminName: 'Academic Admin',
+      actionType: 'CREATE',
+      category: 'ANNOUNCEMENT',
+      targetName: `Calendar Event: ${ev.title}`,
+      description: `Scheduled ${ev.type.toLowerCase()} event "${ev.title}" on academic calendar`,
+      createdAt: ev.createdAt.toISOString(),
+    }));
+
+    // 8. Combine and Sort all administrative change records in descending chronological order
     let allLogs = [
       ...dbAuditLogs.map((l) => ({ ...l, createdAt: l.createdAt.toISOString() })),
       ...feeAuditItems,
+      ...userAuditItems,
+      ...admissionAuditItems,
       ...announcementAuditItems,
       ...galleryAuditItems,
+      ...eventAuditItems,
     ];
 
     // Remove potential duplicate entries by description key
