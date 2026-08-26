@@ -212,6 +212,19 @@ export async function DELETE(request: Request) {
       where: { id }
     });
 
+    try {
+      await prisma.adminAuditLog.create({
+        data: {
+          adminEmail: session.email || 'admin@school.com',
+          adminName: session.name || session.email || 'Admin Staff',
+          actionType: 'DELETE',
+          category: 'ANNOUNCEMENT',
+          targetName: `Notice: ${existing.title}`,
+          description: `Deleted notice circular "${existing.title}"`,
+        },
+      });
+    } catch (e) {}
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Delete announcement error:', error);

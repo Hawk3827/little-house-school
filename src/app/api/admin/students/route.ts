@@ -301,10 +301,24 @@ export async function PATCH(request: Request) {
     }
 
     if (action === 'RESTORE') {
-      await prisma.profile.update({
+      const restored = await prisma.profile.update({
         where: { id: studentId },
         data: { isArchived: false }
       });
+
+      try {
+        await prisma.adminAuditLog.create({
+          data: {
+            adminEmail: session.email || 'admin@school.com',
+            adminName: session.name || session.email || 'Admin Staff',
+            actionType: 'UPDATE',
+            category: 'STUDENT',
+            targetName: `Student: ${restored.name}`,
+            description: `Restored archived student profile for ${restored.name}`,
+          },
+        });
+      } catch (e) {}
+
       return NextResponse.json({ success: true, message: 'Student restored successfully to active nominal roster.' });
     }
 
@@ -312,9 +326,28 @@ export async function PATCH(request: Request) {
       if (session.role !== 'ADMIN') {
         return NextResponse.json({ error: 'Only Administrators can permanently purge records.' }, { status: 403 });
       }
+      const userToPurge = await prisma.user.findUnique({
+        where: { id: studentId },
+        include: { profile: true },
+      });
+
       await prisma.user.delete({
         where: { id: studentId }
       });
+
+      try {
+        await prisma.adminAuditLog.create({
+          data: {
+            adminEmail: session.email || 'admin@school.com',
+            adminName: session.name || session.email || 'Admin Staff',
+            actionType: 'DELETE',
+            category: 'STUDENT',
+            targetName: `Student: ${userToPurge?.profile?.name || userToPurge?.email || 'Student'}`,
+            description: `Permanently purged student account for ${userToPurge?.profile?.name || userToPurge?.email}`,
+          },
+        });
+      } catch (e) {}
+
       return NextResponse.json({ success: true, message: 'Student record permanently purged.' });
     }
 

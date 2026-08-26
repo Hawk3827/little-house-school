@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 import { validateFileMagicBytes } from '@/lib/serverFileValidation';
 import { saveUploadedFile } from '@/lib/uploadHelper';
+import { logAdminAction } from '@/lib/auditLogger';
 
 export const dynamic = 'force-dynamic';
 
@@ -92,6 +93,18 @@ export async function POST(request: Request) {
       },
     });
 
+    const adminName = session.name || session.email;
+    const adminEmail = session.email;
+
+    await logAdminAction({
+      adminEmail,
+      adminName,
+      actionType: 'CREATE',
+      category: 'GALLERY',
+      targetName: `Gallery: ${title.trim()}`,
+      description: `Uploaded new ${mediaType === 'VIDEO' ? 'video' : 'photo'} "${title.trim()}" to campus gallery`,
+    });
+
     return NextResponse.json({ 
       success: true, 
       message: `${mediaType === 'VIDEO' ? 'Video' : 'Photo'} published to website gallery successfully!`,
@@ -118,8 +131,23 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'Missing gallery item ID' }, { status: 400 });
     }
 
+    const itemToDelete = await prisma.galleryItem.findUnique({ where: { id } });
+    const itemTitle = itemToDelete?.title || 'Campus Media';
+
     await prisma.galleryItem.delete({
       where: { id },
+    });
+
+    const adminName = session.name || session.email;
+    const adminEmail = session.email;
+
+    await logAdminAction({
+      adminEmail,
+      adminName,
+      actionType: 'DELETE',
+      category: 'GALLERY',
+      targetName: `Gallery: ${itemTitle}`,
+      description: `Deleted ${itemToDelete?.mediaType?.toLowerCase() || 'item'} "${itemTitle}" from campus gallery`,
     });
 
     return NextResponse.json({ success: true, message: 'Gallery item deleted successfully.' });
