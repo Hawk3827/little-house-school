@@ -26,9 +26,11 @@ import {
   LayoutDashboard,
   Database,
   DollarSign,
-  Activity
+  Activity,
+  KeyRound
 } from 'lucide-react';
 import SignOutButton from './SignOutButton';
+import ChangeAdminPasswordModal from '@/components/ChangeAdminPasswordModal';
 
 interface PortalMobileHeaderProps {
   session: any;
@@ -36,6 +38,7 @@ interface PortalMobileHeaderProps {
 
 export default function PortalMobileHeader({ session }: PortalMobileHeaderProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -444,6 +447,18 @@ export default function PortalMobileHeader({ session }: PortalMobileHeaderProps)
             <span className="block text-xs font-bold text-gray-900 leading-tight">{session.name}</span>
             <span className="text-[10px] text-gray-400 uppercase font-mono">{session.role}</span>
           </div>
+
+          {session.role === 'ADMIN' && (
+            <button
+              onClick={() => setIsPasswordModalOpen(true)}
+              className="px-2.5 py-1.5 bg-purple-100 hover:bg-purple-200 text-purple-900 font-extrabold text-xs rounded-xl transition flex items-center space-x-1 border border-purple-200 shadow-2xs cursor-pointer"
+              title="Change your logged-in password"
+            >
+              <KeyRound className="h-3.5 w-3.5 text-purple-700" />
+              <span className="hidden sm:inline">Change Password</span>
+            </button>
+          )}
+
           <SignOutButton />
         </div>
       </header>
@@ -495,6 +510,13 @@ export default function PortalMobileHeader({ session }: PortalMobileHeaderProps)
           </div>
         </div>
       )}
+
+      <ChangeAdminPasswordModal
+        isOpen={isPasswordModalOpen}
+        onClose={() => setIsPasswordModalOpen(false)}
+        adminName={session.name}
+        adminEmail={session.email}
+      />
     </>
   );
 }

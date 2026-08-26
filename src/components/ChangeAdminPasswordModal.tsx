@@ -79,7 +79,7 @@ export default function ChangeAdminPasswordModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-fadeIn">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fadeIn">
       <div className="bg-white rounded-3xl border border-sky-100 shadow-2xl w-full max-w-md overflow-hidden text-left select-none space-y-4 p-6 relative">
         {/* Close Button */}
         <button
