@@ -17,8 +17,8 @@ export default function AnalyticsTracker() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    // Do not track admin portal or internal pages
-    if (pathname.startsWith('/portal')) return;
+    // Do not track admin portal or automated headless browsers
+    if (pathname.startsWith('/portal') || (navigator as any).webdriver) return;
 
     // Generate or retrieve persistent visitor session ID
     let sid = localStorage.getItem('lh_analytics_session_id');

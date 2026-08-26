@@ -72,6 +72,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, ignored: true });
     }
 
+    const ua = (userAgent || '').toLowerCase();
+
+    // Ignore automated bots, headless browsers, and serverless build workers (e.g. Vercel edge pre-warmers)
+    if (/bot|crawler|spider|headless|vercel|lighthouse|pingdom|uptimerobot/i.test(ua)) {
+      return NextResponse.json({ success: true, ignored: 'Bot or Automated Worker' });
+    }
+
     const { deviceType, deviceOs, browser } = parseDeviceDetails(userAgent || '', screenWidth);
 
     // Prioritize client device IP location, fallback to Vercel/Cloudflare IP headers
