@@ -1,9 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import SignOutButton from '@/components/SignOutButton';
+import ChangeAdminPasswordModal from '@/components/ChangeAdminPasswordModal';
 import { 
   LayoutDashboard,
   Users, 
@@ -24,7 +25,8 @@ import {
   ChevronRight,
   Database,
   DollarSign,
-  Activity
+  Activity,
+  KeyRound
 } from 'lucide-react';
 
 interface DashboardSidebarProps {
@@ -36,6 +38,7 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
   const searchParams = useSearchParams();
   const currentTab = searchParams.get('tab') || 'overview';
 
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const role = (session as any).role || (session as any).user?.role || 'STUDENT';
 
   // Navigation schema based on user role
@@ -266,18 +269,30 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
         </Link>
 
         {/* User Badge Info Card */}
-        <div className="bg-gray-50 rounded-2xl p-3.5 border border-gray-100 flex items-center justify-between">
-          <div className="min-w-0 pr-2">
-            <h4 className="font-bold text-gray-900 text-xs truncate">{session.name}</h4>
-            <p className="text-[11px] text-gray-500 truncate">{session.email}</p>
+        <div className="bg-gray-50 rounded-2xl p-3.5 border border-gray-100 space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="min-w-0 pr-2">
+              <h4 className="font-bold text-gray-900 text-xs truncate">{session.name}</h4>
+              <p className="text-[11px] text-gray-500 truncate">{session.email}</p>
+            </div>
+            <span className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded-md uppercase border flex-shrink-0 ${
+              role === 'ADMIN' ? 'bg-purple-50 text-purple-700 border-purple-200' :
+              role === 'TEACHER' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' :
+              'bg-blue-50 text-blue-700 border-blue-200'
+            }`}>
+              {role}
+            </span>
           </div>
-          <span className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded-md uppercase border flex-shrink-0 ${
-            role === 'ADMIN' ? 'bg-purple-50 text-purple-700 border-purple-200' :
-            role === 'TEACHER' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' :
-            'bg-blue-50 text-blue-700 border-blue-200'
-          }`}>
-            {role}
-          </span>
+
+          {role === 'ADMIN' && (
+            <button
+              onClick={() => setIsPasswordModalOpen(true)}
+              className="w-full py-1.5 px-2 bg-purple-100 hover:bg-purple-200 text-purple-900 font-extrabold text-[10px] rounded-xl transition flex items-center justify-center space-x-1 border border-purple-200 shadow-2xs"
+            >
+              <KeyRound className="h-3 w-3 text-purple-700" />
+              <span>Change My Password</span>
+            </button>
+          )}
         </div>
 
         {/* Navigation Sections */}
@@ -334,6 +349,13 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
         </Link>
         <SignOutButton />
       </div>
+
+      <ChangeAdminPasswordModal
+        isOpen={isPasswordModalOpen}
+        onClose={() => setIsPasswordModalOpen(false)}
+        adminName={session.name}
+        adminEmail={session.email}
+      />
     </aside>
   );
 }
