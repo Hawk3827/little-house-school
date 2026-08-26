@@ -3,9 +3,16 @@
 import { useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 
+interface ClientGeoLocation {
+  city: string;
+  region: string;
+  country: string;
+}
+
 export default function AnalyticsTracker() {
   const pathname = usePathname();
   const startTimeRef = useRef<number>(Date.now());
+  const geoRef = useRef<ClientGeoLocation | null>(null);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -34,11 +41,63 @@ export default function AnalyticsTracker() {
     const startTime = Date.now();
     startTimeRef.current = startTime;
 
+    // Resolve exact client device location via client-side WAN IP lookup
+    const fetchClientDeviceLocation = async (): Promise<ClientGeoLocation | null> => {
+      // Return cached location if already fetched in this session
+      const cached = sessionStorage.getItem('lh_client_geo');
+      if (cached) {
+        try {
+          return JSON.parse(cached);
+        } catch (e) {}
+      }
+
+      try {
+        // Try primary IP location provider from accessing device
+        const res = await fetch('https://ipapi.co/json/', { cache: 'force-cache' });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.city) {
+            const loc = {
+              city: data.city || 'Imphal',
+              region: data.region || 'Manipur',
+              country: data.country_name || 'India',
+            };
+            sessionStorage.setItem('lh_client_geo', JSON.stringify(loc));
+            return loc;
+          }
+        }
+      } catch (e) {
+        // Fallback provider
+        try {
+          const res2 = await fetch('https://api.db-ip.com/v2/free/self');
+          if (res2.ok) {
+            const data2 = await res2.json();
+            if (data2.city) {
+              const loc2 = {
+                city: data2.city || 'Imphal',
+                region: data2.stateProv || 'Manipur',
+                country: data2.countryName || 'India',
+              };
+              sessionStorage.setItem('lh_client_geo', JSON.stringify(loc2));
+              return loc2;
+            }
+          }
+        } catch (e2) {}
+      }
+      return null;
+    };
+
     // Function to record pageview telemetry
     const recordPageView = async (durationSec: number = 10) => {
       try {
         const userAgent = navigator.userAgent || '';
         const screenWidth = window.innerWidth || 1200;
+
+        let geo = geoRef.current;
+        if (!geo) {
+          geo = await fetchClientDeviceLocation();
+          geoRef.current = geo;
+        }
 
         await fetch('/api/public/analytics', {
           method: 'POST',
@@ -52,6 +111,9 @@ export default function AnalyticsTracker() {
             visitCount: visits || 1,
             isNewVisitor: visits <= 1,
             durationSeconds: durationSec,
+            locationCity: geo?.city,
+            locationRegion: geo?.region,
+            locationCountry: geo?.country,
           }),
         });
       } catch (err) {
@@ -63,6 +125,7 @@ export default function AnalyticsTracker() {
 
     const handleUnload = () => {
       const duration = Math.max(5, Math.round((Date.now() - startTime) / 1000));
+      const geo = geoRef.current;
       const payload = JSON.stringify({
         sessionId: sid,
         pagePath: pathname || '/',
@@ -70,6 +133,9 @@ export default function AnalyticsTracker() {
         durationSeconds: duration,
         userAgent: navigator.userAgent || '',
         screenWidth: window.innerWidth || 1200,
+        locationCity: geo?.city,
+        locationRegion: geo?.region,
+        locationCountry: geo?.country,
       });
 
       if (navigator.sendBeacon) {

@@ -62,6 +62,9 @@ export async function POST(request: Request) {
       visitCount = 1,
       isNewVisitor = true,
       durationSeconds = 15,
+      locationCity,
+      locationRegion,
+      locationCountry,
     } = body;
 
     // Do not log admin portal hits
@@ -71,22 +74,22 @@ export async function POST(request: Request) {
 
     const { deviceType, deviceOs, browser } = parseDeviceDetails(userAgent || '', screenWidth);
 
-    // Extract Geo IP headers from Vercel / Cloudflare or default to Manipur region
-    const city = request.headers.get('x-vercel-ip-city') || request.headers.get('cf-ipcity') || 'Imphal';
-    const region = request.headers.get('x-vercel-ip-country-region') || request.headers.get('cf-region') || 'Manipur';
-    const country = request.headers.get('x-vercel-ip-country') || request.headers.get('cf-ipcountry') || 'India';
+    // Prioritize client device IP location, fallback to Vercel/Cloudflare IP headers
+    const headerCity = request.headers.get('x-vercel-ip-city') || request.headers.get('cf-ipcity');
+    const headerRegion = request.headers.get('x-vercel-ip-country-region') || request.headers.get('cf-region');
+    const headerCountry = request.headers.get('x-vercel-ip-country') || request.headers.get('cf-ipcountry');
     const clientIp = request.headers.get('x-forwarded-for')?.split(',')[0] || '127.0.0.1';
 
-    // Decode URL encoded city names (e.g. Imphal%20East -> Imphal East)
-    const decodedCity = decodeURIComponent(city);
-    const decodedRegion = decodeURIComponent(region);
+    const city = locationCity || (headerCity ? decodeURIComponent(headerCity) : 'Imphal');
+    const region = locationRegion || (headerRegion ? decodeURIComponent(headerRegion) : 'Manipur');
+    const country = locationCountry || headerCountry || 'India';
 
     const record = await prisma.websiteAnalytics.create({
       data: {
         sessionId,
         visitorIp: clientIp,
-        locationCity: decodedCity,
-        locationRegion: decodedRegion,
+        locationCity: city,
+        locationRegion: region,
         locationCountry: country,
         deviceType,
         deviceOs,
