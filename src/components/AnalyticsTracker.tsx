@@ -20,11 +20,25 @@ export default function AnalyticsTracker() {
     // Do not track admin portal or automated headless browsers
     if (pathname.startsWith('/portal') || (navigator as any).webdriver) return;
 
-    // Generate or retrieve persistent visitor session ID
+    // Persistent Cookie + LocalStorage Visitor Identifier
+    const getOrSetCookie = (name: string, value: string) => {
+      try {
+        const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+        if (match) return match[2];
+        const expires = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toUTCString();
+        document.cookie = `${name}=${value}; expires=${expires}; path=/; SameSite=Lax`;
+        return value;
+      } catch (e) {
+        return value;
+      }
+    };
+
     let sid = localStorage.getItem('lh_analytics_session_id');
     if (!sid) {
-      sid = 'sid_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 9);
-      localStorage.setItem('lh_analytics_session_id', sid);
+      sid = getOrSetCookie('lh_analytics_vid', 'vid_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 9));
+      try {
+        localStorage.setItem('lh_analytics_session_id', sid);
+      } catch (e) {}
     }
 
     // Track return visit count in localStorage

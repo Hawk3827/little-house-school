@@ -58,24 +58,30 @@ export async function GET(request: Request) {
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const totalPageviews = allAnalytics.length;
 
-    // Group pageview records by unique sessionId to prevent row-duplication distortion
-    const sessionMap = new Map<string, typeof allAnalytics>();
+    // Group by Physical Device Fingerprint (visitorIp + deviceOs + browser + locationCity) OR sessionId
+    // This guarantees that 1 device refreshing or generating multiple sids is counted as EXACTLY 1 Unique Visitor.
+    const visitorFingerprintMap = new Map<string, typeof allAnalytics>();
     allAnalytics.forEach((a) => {
-      if (!sessionMap.has(a.sessionId)) {
-        sessionMap.set(a.sessionId, []);
+      // Create stable physical device fingerprint
+      const fingerprint = `${a.visitorIp || '127.0.0.1'}_${a.deviceOs}_${a.browser}_${a.locationCity}`;
+      if (!visitorFingerprintMap.has(fingerprint)) {
+        visitorFingerprintMap.set(fingerprint, []);
       }
-      sessionMap.get(a.sessionId)!.push(a);
+      visitorFingerprintMap.get(fingerprint)!.push(a);
     });
 
-    const totalVisitors = sessionMap.size;
+    const totalVisitors = visitorFingerprintMap.size;
 
-    // Filter today's unique visitors
+    // Today's active unique visitors
     const todayAnalytics = allAnalytics.filter((a) => new Date(a.createdAt) >= todayStart);
-    const todayVisitors = new Set(todayAnalytics.map((a) => a.sessionId)).size;
+    const todayFingerprints = new Set(
+      todayAnalytics.map((a) => `${a.visitorIp || '127.0.0.1'}_${a.deviceOs}_${a.browser}_${a.locationCity}`)
+    );
+    const todayVisitors = todayFingerprints.size;
 
-    // 1. Average Session Duration across unique sessions
+    // 1. Average Session Duration across unique physical visitors
     let totalSessionSeconds = 0;
-    sessionMap.forEach((hits) => {
+    visitorFingerprintMap.forEach((hits) => {
       const sessionTime = hits.reduce((sum, h) => sum + (h.durationSeconds || 0), 0);
       totalSessionSeconds += sessionTime;
     });
@@ -85,12 +91,12 @@ export async function GET(request: Request) {
     const durationRemSecs = avgDurationSeconds % 60;
     const avgDurationFormatted = `${durationMinutes > 0 ? `${durationMinutes}m ` : ''}${durationRemSecs}s`;
 
-    // 2. Device Type Breakdown per unique session
+    // 2. Device Type Breakdown per unique physical visitor
     const deviceCounts: Record<string, number> = { Mobile: 0, Desktop: 0, Tablet: 0 };
     const osCounts: Record<string, number> = {};
     const browserCounts: Record<string, number> = {};
 
-    sessionMap.forEach((hits) => {
+    visitorFingerprintMap.forEach((hits) => {
       const primaryHit = hits[0];
       const type = primaryHit.deviceType || 'Mobile';
       deviceCounts[type] = (deviceCounts[type] || 0) + 1;
@@ -107,9 +113,9 @@ export async function GET(request: Request) {
       percentage: totalVisitors > 0 ? Math.round((count / totalVisitors) * 100) : 0,
     }));
 
-    // 3. Geographic Location Breakdown per unique session
+    // 3. Geographic Location Breakdown per unique physical visitor
     const locationCounts: Record<string, { city: string; region: string; country: string; visitorsCount: number; pageviewsCount: number }> = {};
-    sessionMap.forEach((hits) => {
+    visitorFingerprintMap.forEach((hits) => {
       const primaryHit = hits[0];
       const key = `${primaryHit.locationCity}, ${primaryHit.locationRegion}`;
       if (!locationCounts[key]) {
@@ -137,7 +143,7 @@ export async function GET(request: Request) {
         percentage: totalVisitors > 0 ? Math.round((l.visitorsCount / totalVisitors) * 100) : 0,
       }));
 
-    // 4. Visit Frequency & Return Visitor Loyalty per unique session
+    // 4. Visit Frequency & Return Visitor Loyalty per unique physical visitor
     const frequencyCounts = {
       firstTime: 0,
       returning2to3: 0,
@@ -145,11 +151,16 @@ export async function GET(request: Request) {
       loyal10Plus: 0,
     };
 
-    sessionMap.forEach((hits) => {
-      const maxVisits = Math.max(...hits.map((h) => h.visitCount || 1));
-      if (maxVisits === 1) frequencyCounts.firstTime += 1;
-      else if (maxVisits >= 2 && maxVisits <= 3) frequencyCounts.returning2to3 += 1;
-      else if (maxVisits >= 4 && maxVisits <= 10) frequencyCounts.frequent4to10 += 1;
+    visitorFingerprintMap.forEach((hits) => {
+      // Calculate distinct visit days for this physical device
+      const distinctVisitDates = new Set(
+        hits.map((h) => new Date(h.createdAt).toISOString().split('T')[0])
+      );
+      const visits = distinctVisitDates.size;
+
+      if (visits === 1) frequencyCounts.firstTime += 1;
+      else if (visits >= 2 && visits <= 3) frequencyCounts.returning2to3 += 1;
+      else if (visits >= 4 && visits <= 10) frequencyCounts.frequent4to10 += 1;
       else frequencyCounts.loyal10Plus += 1;
     });
 
@@ -175,7 +186,7 @@ export async function GET(request: Request) {
         percentage: totalPageviews > 0 ? Math.round((pg.views / totalPageviews) * 100) : 0,
       }));
 
-    // 6. Recent Live Visitor Activity Log (De-duplicated recent stream)
+    // 6. Recent Live Visitor Activity Log
     const recentActivity = allAnalytics.slice(0, 35).map((a) => ({
       id: a.id,
       sessionId: a.sessionId,
