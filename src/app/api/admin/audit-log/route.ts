@@ -22,88 +22,104 @@ export async function GET(request: Request) {
     const limitParam = searchParams.get('limit') || '100';
     const limitNum = limitParam === 'all' ? 1000 : parseInt(limitParam, 10) || 100;
 
-    let whereClause: any = {};
-    if (category !== 'ALL') {
-      whereClause.category = category;
-    }
-
-    let logs = await prisma.adminAuditLog.findMany({
-      where: whereClause,
+    // 1. Fetch Explicit Audit Logs from database
+    const dbAuditLogs = await prisma.adminAuditLog.findMany({
       orderBy: { createdAt: 'desc' },
       take: limitNum,
     });
 
-    // Seed default administrative change records if empty so admin has live records
-    if (logs.length === 0) {
-      const defaultLogs = [
-        {
-          adminEmail: 'admin@school.com',
-          adminName: 'Haobam Chanu Ranjana',
-          actionType: 'SECURITY',
-          category: 'SECURITY',
-          targetName: 'Staff Security PIN',
-          description: 'Updated staff accountability PIN for Fee Counter & Roster Console',
-          createdAt: new Date(Date.now() - 15 * 60 * 1000),
-        },
-        {
-          adminEmail: 'admin@school.com',
-          adminName: 'Haobam Chanu Ranjana',
-          actionType: 'PAYMENT',
-          category: 'FEE_PAYMENT',
-          targetName: 'Student RK Linthoi (Adm #1024)',
-          description: 'Issued Monthly Fee Receipt #REC-89201 for ₹2,500 (August 2026 Tuition)',
-          createdAt: new Date(Date.now() - 45 * 60 * 1000),
-        },
-        {
-          adminEmail: 'admin@school.com',
-          adminName: 'Haobam Chanu Ranjana',
-          actionType: 'CREATE',
-          category: 'ANNOUNCEMENT',
-          targetName: 'FA-II Examination Timetable 2026',
-          description: 'Published FA-II Formative Assessment Timetable circular & pdf notice',
-          createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
-        },
-        {
-          adminEmail: 'admin@school.com',
-          adminName: 'Haobam Chanu Ranjana',
-          actionType: 'UPDATE',
-          category: 'STUDENT',
-          targetName: 'Laishram Thouba (Class IX)',
-          description: 'Updated emergency guardian contact details & admission status',
-          createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000),
-        },
-        {
-          adminEmail: 'admin@school.com',
-          adminName: 'Haobam Chanu Ranjana',
-          actionType: 'CREATE',
-          category: 'GALLERY',
-          targetName: 'Independence Day Celebrations 2026',
-          description: 'Uploaded 12 high-resolution photos to School Gallery',
-          createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000),
-        },
-        {
-          adminEmail: 'admin@school.com',
-          adminName: 'Haobam Chanu Ranjana',
-          actionType: 'BACKUP',
-          category: 'BACKUP',
-          targetName: 'Database System Snapshot',
-          description: 'Triggered automated Google Drive encrypted database backup',
-          createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
-        },
-      ];
+    // 2. Fetch Real Fee Payments recorded across all admins & staff
+    const feePayments = await prisma.feePayment.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: limitNum,
+    });
 
-      await prisma.adminAuditLog.createMany({
-        data: defaultLogs,
-      });
+    const feeAuditItems = feePayments.map((fp) => {
+      const recorder = fp.recordedBy || 'Admin Office';
+      let adminEmail = 'admin@school.com';
+      if (recorder.toLowerCase().includes('netrajit')) adminEmail = 'netrajit@admin';
+      if (recorder.toLowerCase().includes('ranjana')) adminEmail = 'admin@school.com';
 
-      logs = await prisma.adminAuditLog.findMany({
-        where: whereClause,
-        orderBy: { createdAt: 'desc' },
-        take: limitNum,
-      });
+      return {
+        id: `fee_${fp.id}`,
+        adminEmail,
+        adminName: recorder,
+        actionType: 'PAYMENT',
+        category: 'FEE_PAYMENT',
+        targetName: `${fp.studentName} (${fp.studentClass})`,
+        description: `Issued Fee Receipt #${fp.receiptNo} of ₹${fp.totalAmount.toLocaleString('en-IN')} for ${fp.paidMonths} (${fp.paymentMode})`,
+        createdAt: fp.createdAt.toISOString(),
+      };
+    });
+
+    // 3. Fetch Announcements published by admins
+    const announcements = await prisma.announcement.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 25,
+      select: {
+        id: true,
+        title: true,
+        audience: true,
+        createdAt: true,
+        createdBy: { select: { name: true } },
+      },
+    });
+
+    const announcementAuditItems = announcements.map((ann) => ({
+      id: `ann_${ann.id}`,
+      adminEmail: 'admin@school.com',
+      adminName: ann.createdBy?.name || 'Haobam Chanu Ranjana',
+      actionType: 'CREATE',
+      category: 'ANNOUNCEMENT',
+      targetName: `Notice: ${ann.title}`,
+      description: `Published circular notice "${ann.title}" for audience: ${ann.audience}`,
+      createdAt: ann.createdAt.toISOString(),
+    }));
+
+    // 4. Fetch School Gallery uploads
+    const galleryItems = await prisma.galleryItem.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 25,
+    });
+
+    const galleryAuditItems = galleryItems.map((g) => ({
+      id: `gal_${g.id}`,
+      adminEmail: 'admin@school.com',
+      adminName: 'Media Admin',
+      actionType: 'CREATE',
+      category: 'GALLERY',
+      targetName: `Gallery: ${g.title}`,
+      description: `Uploaded ${g.mediaType.toLowerCase()} "${g.title}" to school campus gallery`,
+      createdAt: g.createdAt.toISOString(),
+    }));
+
+    // 5. Combine and Sort all administrative change records in descending chronological order
+    let allLogs = [
+      ...dbAuditLogs.map((l) => ({ ...l, createdAt: l.createdAt.toISOString() })),
+      ...feeAuditItems,
+      ...announcementAuditItems,
+      ...galleryAuditItems,
+    ];
+
+    // Remove potential duplicate entries by description key
+    const seen = new Set();
+    allLogs = allLogs.filter((l) => {
+      const key = `${l.category}_${l.description}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    allLogs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+    // Apply category filter if specified
+    if (category !== 'ALL') {
+      allLogs = allLogs.filter((l) => l.category === category);
     }
 
-    return NextResponse.json({ success: true, logs });
+    const finalLogs = allLogs.slice(0, limitNum);
+
+    return NextResponse.json({ success: true, logs: finalLogs });
   } catch (error: any) {
     return NextResponse.json({ error: error.message || 'Failed to fetch audit logs' }, { status: 500 });
   }
