@@ -137,6 +137,17 @@ export default function AdminDashboardConsole({
     { id: 'backups', label: 'Disaster Recovery & Backups', icon: Database },
   ];
 
+  const [healthData, setHealthData] = useState<any>(null);
+
+  useEffect(() => {
+    fetch('/api/admin/health-check')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) setHealthData(data.health);
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <div className="space-y-8 text-left">
       {/* Top Header */}
@@ -145,9 +156,17 @@ export default function AdminDashboardConsole({
           <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight flex items-center space-x-2.5">
             <span>Administrator Control Center</span>
           </h1>
-          <p className="text-xs sm:text-sm text-gray-500 mt-1">
-            Centralized school management, faculty controls, student dossiers, and media publishing.
-          </p>
+          <div className="flex items-center space-x-2 mt-1">
+            <p className="text-xs sm:text-sm text-gray-500">
+              Centralized school management, faculty controls, student dossiers, and media publishing.
+            </p>
+          </div>
+          {healthData && (
+            <div className="mt-2.5 inline-flex items-center space-x-2 text-[11px] font-mono font-bold px-3 py-1 bg-emerald-50 text-emerald-900 border border-emerald-200 rounded-full shadow-2xs">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>System Storage: {healthData.estimatedDbMb} MB / {healthData.dbStorageLimitMb} MB ({healthData.storageUsedPercentage}% Used • Optimal)</span>
+            </div>
+          )}
         </div>
 
         <Link
@@ -159,6 +178,27 @@ export default function AdminDashboardConsole({
           <ArrowRight className="h-3.5 w-3.5" />
         </Link>
       </div>
+
+      {/* Proactive Storage Warning Banner (Triggers automatically if DB usage exceeds 80%) */}
+      {healthData && (healthData.isStorageWarning || healthData.isStorageCritical) && (
+        <div className={`p-4 rounded-2xl border flex items-start space-x-3 text-xs font-bold animate-fadeIn shadow-md ${
+          healthData.isStorageCritical 
+            ? 'bg-rose-50 border-rose-300 text-rose-900' 
+            : 'bg-amber-50 border-amber-300 text-amber-950'
+        }`}>
+          <div className={`p-2 rounded-xl text-white ${healthData.isStorageCritical ? 'bg-rose-600' : 'bg-amber-600'}`}>
+            <Database className="h-5 w-5 animate-bounce" />
+          </div>
+          <div className="space-y-1">
+            <h4 className="text-sm font-extrabold flex items-center space-x-1.5">
+              <span>⚠️ ACTION REQUIRED: Database Storage Limit Warning ({healthData.storageUsedPercentage}% Used)</span>
+            </h4>
+            <p className="font-medium text-xs leading-relaxed">
+              Your database storage is currently at <strong>{healthData.estimatedDbMb} MB out of {healthData.dbStorageLimitMb} MB</strong>. To avoid hitting storage limits, consider archiving old analytics logs or contacting technical support.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Horizontal Nav Tabs (Swipeable on Mobile & Tablet) */}
       <div className="flex items-center space-x-2 overflow-x-auto pb-2 scroll-smooth no-scrollbar border-b border-gray-200">
