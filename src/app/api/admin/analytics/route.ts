@@ -207,12 +207,27 @@ export async function GET(request: Request) {
       const deviceTotalHits = fingerprintVisitCounts[fp] || 1;
       const computedVisitCount = Math.max(a.visitCount || 1, deviceTotalHits);
 
+      // Determine Instagram-style device model name
+      let deviceName = 'Desktop PC';
+      if (a.deviceOs === 'iOS') {
+        deviceName = a.deviceType === 'Tablet' ? 'Apple iPad' : 'Apple iPhone';
+      } else if (a.deviceOs === 'macOS') {
+        deviceName = 'Apple Mac';
+      } else if (a.deviceOs === 'Android') {
+        deviceName = a.deviceType === 'Tablet' ? 'Android Tablet' : 'Android Smartphone';
+      } else if (a.deviceOs === 'Windows') {
+        deviceName = 'Windows PC';
+      } else if (a.deviceOs === 'Linux') {
+        deviceName = 'Linux Workstation';
+      }
+
       return {
         id: a.id,
         sessionId: a.sessionId,
         location: `${a.locationCity}, ${a.locationRegion}`,
         deviceType: a.deviceType,
         deviceOs: a.deviceOs,
+        deviceName: deviceName,
         browser: a.browser,
         pagePath: a.pagePath,
         pageTitle: a.pageTitle,

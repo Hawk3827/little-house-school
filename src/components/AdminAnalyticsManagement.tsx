@@ -59,6 +59,7 @@ interface RecentActivity {
   location: string;
   deviceType: string;
   deviceOs: string;
+  deviceName?: string;
   browser: string;
   pagePath: string;
   pageTitle: string;
@@ -646,7 +647,7 @@ export default function AdminAnalyticsManagement() {
                   <tr>
                     <th className="py-3 px-4 bg-slate-900">Timestamp</th>
                     <th className="py-3 px-4 bg-slate-900">Location</th>
-                    <th className="py-3 px-4 bg-slate-900">Device & OS</th>
+                    <th className="py-3 px-4 bg-slate-900">Device Hardware</th>
                     <th className="py-3 px-4 bg-slate-900">Browser</th>
                     <th className="py-3 px-4 bg-slate-900">Page Visited</th>
                     <th className="py-3 px-4 bg-slate-900">Duration Spent</th>
@@ -666,7 +667,8 @@ export default function AdminAnalyticsManagement() {
                         </span>
                       </td>
                       <td className="py-3 px-4 whitespace-nowrap">
-                        <div className="font-bold text-slate-800">{a.deviceType} ({a.deviceOs})</div>
+                        <div className="font-extrabold text-slate-900">{a.deviceName || `${a.deviceType} (${a.deviceOs})`}</div>
+                        <div className="text-[10px] font-mono text-slate-500">{a.deviceType} • {a.deviceOs}</div>
                       </td>
                       <td className="py-3 px-4 text-slate-600 whitespace-nowrap">
                         {a.browser}

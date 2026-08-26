@@ -7,41 +7,67 @@ function parseDeviceDetails(ua: string, screenWidth: number = 1200) {
   let deviceType = 'Desktop';
   let deviceOs = 'Windows';
   let browser = 'Chrome';
+  let deviceName = 'Desktop PC';
 
-  const userAgent = ua.toLowerCase();
+  const userAgent = ua || '';
+
+  // Instagram-style device model parsing
+  if (/iphone/i.test(userAgent)) {
+    deviceName = 'Apple iPhone';
+  } else if (/ipad/i.test(userAgent)) {
+    deviceName = 'Apple iPad';
+  } else if (/macintosh|mac os x/i.test(userAgent)) {
+    deviceName = 'Apple Mac';
+  } else if (/samsung|sm-[a-z0-9]+/i.test(userAgent)) {
+    deviceName = 'Samsung Galaxy';
+  } else if (/pixel/i.test(userAgent)) {
+    deviceName = 'Google Pixel';
+  } else if (/xiaomi|redmi|poco/i.test(userAgent)) {
+    deviceName = 'Xiaomi Redmi';
+  } else if (/oneplus/i.test(userAgent)) {
+    deviceName = 'OnePlus Phone';
+  } else if (/realme|oppo|vivo|iqoo/i.test(userAgent)) {
+    deviceName = 'OPPO / Vivo / Realme';
+  } else if (/android/i.test(userAgent)) {
+    deviceName = screenWidth < 768 ? 'Android Phone' : 'Android Tablet';
+  } else if (/windows/i.test(userAgent)) {
+    deviceName = 'Windows PC';
+  } else if (/linux/i.test(userAgent)) {
+    deviceName = 'Linux Workstation';
+  }
 
   // Device Type
-  if (/mobile|iphone|ipod|android.*mobile|windows phone/i.test(ua) || screenWidth < 768) {
+  if (/mobile|iphone|ipod|android.*mobile|windows phone/i.test(userAgent) || screenWidth < 768) {
     deviceType = 'Mobile';
-  } else if (/ipad|tablet|android(?!.*mobile)/i.test(ua) || (screenWidth >= 768 && screenWidth < 1024)) {
+  } else if (/ipad|tablet|android(?!.*mobile)/i.test(userAgent) || (screenWidth >= 768 && screenWidth < 1024)) {
     deviceType = 'Tablet';
   }
 
   // OS
-  if (/iphone|ipad|ipod/i.test(ua)) {
+  if (/iphone|ipad|ipod/i.test(userAgent)) {
     deviceOs = 'iOS';
-  } else if (/android/i.test(ua)) {
+  } else if (/android/i.test(userAgent)) {
     deviceOs = 'Android';
-  } else if (/mac os x|macintosh/i.test(ua)) {
+  } else if (/mac os x|macintosh/i.test(userAgent)) {
     deviceOs = 'macOS';
-  } else if (/windows/i.test(ua)) {
+  } else if (/windows/i.test(userAgent)) {
     deviceOs = 'Windows';
-  } else if (/linux/i.test(ua)) {
+  } else if (/linux/i.test(userAgent)) {
     deviceOs = 'Linux';
   }
 
   // Browser
-  if (/chrome|crios/i.test(ua) && !/edg|opr|opera/i.test(ua)) {
+  if (/chrome|crios/i.test(userAgent) && !/edg|opr|opera/i.test(userAgent)) {
     browser = 'Chrome';
-  } else if (/safari/i.test(ua) && !/chrome|crios|android/i.test(ua)) {
+  } else if (/safari/i.test(userAgent) && !/chrome|crios|android/i.test(userAgent)) {
     browser = 'Safari';
-  } else if (/firefox|fxios/i.test(ua)) {
+  } else if (/firefox|fxios/i.test(userAgent)) {
     browser = 'Firefox';
-  } else if (/edg/i.test(ua)) {
+  } else if (/edg/i.test(userAgent)) {
     browser = 'Edge';
   }
 
-  return { deviceType, deviceOs, browser };
+  return { deviceType, deviceOs, browser, deviceName };
 }
 
 export async function POST(request: Request) {
