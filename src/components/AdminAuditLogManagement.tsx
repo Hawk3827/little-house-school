@@ -44,7 +44,10 @@ export default function AdminAuditLogManagement() {
     setLoading(true);
     setAccessForbidden(false);
     try {
-      const res = await fetch(`/api/admin/audit-log?category=${selectedCategory}&limit=${limit}`);
+      let res = await fetch(`/api/admin/audit-records?category=${selectedCategory}&limit=${limit}`);
+      if (!res.ok && res.status !== 403) {
+        res = await fetch(`/api/admin/audit-log?category=${selectedCategory}&limit=${limit}`);
+      }
       if (res.status === 403) {
         setAccessForbidden(true);
         setLogs([]);

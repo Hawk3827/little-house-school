@@ -72,7 +72,7 @@ const nextConfig = {
   async redirects() {
     return [
       {
-        source: '/:path*(.db|.sqlite|.sqlite3|.env|.env.local|.env.production|.sql|.bak|.log)',
+        source: '/:path*\\.(db|sqlite|sqlite3|env|env\\.local|env\\.production|sql|bak|log)',
         destination: '/404',
         permanent: true,
       },
