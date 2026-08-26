@@ -74,8 +74,8 @@ export async function POST(request: Request) {
 
     const ua = (userAgent || '').toLowerCase();
 
-    // Ignore automated bots, headless browsers, and serverless build workers (e.g. Vercel edge pre-warmers)
-    if (/bot|crawler|spider|headless|vercel|lighthouse|pingdom|uptimerobot/i.test(ua)) {
+    // Ignore automated bots, search crawlers, headless browsers, and datacenter monitoring nodes (e.g. Vercel NYC Edge, Googlebot)
+    if (/bot|crawler|spider|headless|vercel|lighthouse|pingdom|uptimerobot|google|inspect|monitor|probe|fetcher|slurp|facebookexternalhit|bingpreview/i.test(ua)) {
       return NextResponse.json({ success: true, ignored: 'Bot or Automated Worker' });
     }
 
