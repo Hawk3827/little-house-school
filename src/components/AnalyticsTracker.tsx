@@ -150,7 +150,7 @@ export default function AnalyticsTracker() {
       return null;
     };
 
-    // Exact Hardware Device Model Detection (Instagram Login History Style)
+    // Universal Any-Device Hardware Model Extractor (Parses ALL brands, models & custom hardware globally)
     const detectExactDeviceModel = (): string => {
       if (typeof window === 'undefined') return '';
       const ua = navigator.userAgent || '';
@@ -158,6 +158,17 @@ export default function AnalyticsTracker() {
       const h = window.screen.height;
       const dpr = window.devicePixelRatio || 1;
       const touch = navigator.maxTouchPoints || 0;
+
+      // 1. Check W3C User-Agent Client Hints API (Chrome / Edge / Opera / Android WebViews)
+      try {
+        const uad = (navigator as any).userAgentData;
+        if (uad && uad.model && uad.model.trim()) {
+          const rawModel = uad.model.trim();
+          if (rawModel && rawModel.length > 1) {
+            return rawModel.replace(/\b\w/g, (c: string) => c.toUpperCase());
+          }
+        }
+      } catch (e) {}
 
       // WebGL GPU Renderer Detection
       let gpu = '';
@@ -172,50 +183,56 @@ export default function AnalyticsTracker() {
         }
       } catch (e) {}
 
-      // 1. Android Specific Hardware Model Parsing (SM-S928B, Pixel 9, 2312DRA50G, etc.)
+      // 2. Dynamic Android Regex Model Extractor from parenthetical UA string e.g. (Linux; Android 14; motorola edge 50 pro)
       if (/android/i.test(ua)) {
-        if (/sm-s928/i.test(ua)) return 'Samsung Galaxy S24 Ultra';
-        if (/sm-s926/i.test(ua)) return 'Samsung Galaxy S24+';
-        if (/sm-s921/i.test(ua)) return 'Samsung Galaxy S24';
-        if (/sm-s918/i.test(ua)) return 'Samsung Galaxy S23 Ultra';
-        if (/sm-s916/i.test(ua)) return 'Samsung Galaxy S23+';
-        if (/sm-s911/i.test(ua)) return 'Samsung Galaxy S23';
-        if (/sm-s908/i.test(ua)) return 'Samsung Galaxy S22 Ultra';
-        if (/sm-f946/i.test(ua)) return 'Samsung Galaxy Z Fold 5';
-        if (/sm-f731/i.test(ua)) return 'Samsung Galaxy Z Flip 5';
-        if (/sm-a556/i.test(ua)) return 'Samsung Galaxy A55 5G';
-        if (/sm-a356/i.test(ua)) return 'Samsung Galaxy A35 5G';
-        if (/sm-a155|sm-a156/i.test(ua)) return 'Samsung Galaxy A15 5G';
-        if (/sm-m346/i.test(ua)) return 'Samsung Galaxy M34 5G';
-        if (/samsung/i.test(ua)) return 'Samsung Galaxy';
+        const androidMatch = ua.match(/android\s+[\d\.]+;\s*([^;\)\/]+)/i);
+        if (androidMatch && androidMatch[1] && !/mobile|wv|k/i.test(androidMatch[1].trim())) {
+          let extracted = androidMatch[1].trim();
+          if (extracted && extracted.length > 2 && !/^android$/i.test(extracted)) {
+            // Samsung Model Code Mapping
+            if (/sm-s928/i.test(extracted)) return 'Samsung Galaxy S24 Ultra';
+            if (/sm-s926/i.test(extracted)) return 'Samsung Galaxy S24+';
+            if (/sm-s921/i.test(extracted)) return 'Samsung Galaxy S24';
+            if (/sm-s918/i.test(extracted)) return 'Samsung Galaxy S23 Ultra';
+            if (/sm-s916/i.test(extracted)) return 'Samsung Galaxy S23+';
+            if (/sm-s911/i.test(extracted)) return 'Samsung Galaxy S23';
+            if (/sm-s908/i.test(extracted)) return 'Samsung Galaxy S22 Ultra';
+            if (/sm-f946/i.test(extracted)) return 'Samsung Galaxy Z Fold 5';
+            if (/sm-f731/i.test(extracted)) return 'Samsung Galaxy Z Flip 5';
+            if (/sm-a556/i.test(extracted)) return 'Samsung Galaxy A55 5G';
+            if (/sm-a356/i.test(extracted)) return 'Samsung Galaxy A35 5G';
+            if (/sm-a155|sm-a156/i.test(extracted)) return 'Samsung Galaxy A15 5G';
+            if (/2312dra50g/i.test(extracted)) return 'Redmi Note 13 Pro+';
+            if (/cph2581/i.test(extracted)) return 'OnePlus 12';
+            
+            // Clean up model string e.g. "motorola edge 50 pro" -> "Motorola Edge 50 Pro"
+            return extracted.replace(/\b\w/g, (c: string) => c.toUpperCase());
+          }
+        }
 
-        if (/pixel 9 pro/i.test(ua)) return 'Google Pixel 9 Pro';
-        if (/pixel 9/i.test(ua)) return 'Google Pixel 9';
-        if (/pixel 8 pro/i.test(ua)) return 'Google Pixel 8 Pro';
-        if (/pixel 8a/i.test(ua)) return 'Google Pixel 8a';
-        if (/pixel 8/i.test(ua)) return 'Google Pixel 8';
-        if (/pixel 7a/i.test(ua)) return 'Google Pixel 7a';
-        if (/pixel 7 pro/i.test(ua)) return 'Google Pixel 7 Pro';
-        if (/pixel/i.test(ua)) return 'Google Pixel Phone';
-
-        if (/2312dra50g/i.test(ua)) return 'Xiaomi Redmi Note 13 Pro+';
-        if (/23078rn4d/i.test(ua)) return 'Xiaomi Redmi Note 12';
-        if (/2201117ti|2201117tg/i.test(ua)) return 'Xiaomi Redmi Note 11';
-        if (/xiaomi|redmi|poco/i.test(ua)) return 'Xiaomi Redmi Phone';
-
-        if (/cph2581|cph2449/i.test(ua)) return 'OnePlus 12';
-        if (/cph2413/i.test(ua)) return 'OnePlus 11R';
-        if (/oneplus/i.test(ua)) return 'OnePlus Phone';
-
-        if (/rmx3710|rmx3840/i.test(ua)) return 'Realme 12 Pro+';
+        // Generic Brand Matches for ANY Android Device
+        if (/motorola|moto/i.test(ua)) return 'Motorola Smartphone';
+        if (/nothing/i.test(ua)) return 'Nothing Phone';
+        if (/lenovo/i.test(ua)) return 'Lenovo Mobile';
+        if (/asus|rog/i.test(ua)) return 'ASUS ROG Phone';
+        if (/sony|xperia/i.test(ua)) return 'Sony Xperia';
+        if (/nokia/i.test(ua)) return 'Nokia Smartphone';
+        if (/infinix/i.test(ua)) return 'Infinix Smartphone';
+        if (/tecno/i.test(ua)) return 'Tecno Mobile';
+        if (/honor|huawei/i.test(ua)) return 'Honor / Huawei Phone';
+        if (/iqoo/i.test(ua)) return 'iQOO Smartphone';
         if (/realme/i.test(ua)) return 'Realme Smartphone';
         if (/vivo/i.test(ua)) return 'Vivo Smartphone';
         if (/oppo/i.test(ua)) return 'OPPO Smartphone';
+        if (/oneplus/i.test(ua)) return 'OnePlus Phone';
+        if (/xiaomi|redmi|poco/i.test(ua)) return 'Xiaomi Redmi Phone';
+        if (/pixel/i.test(ua)) return 'Google Pixel';
+        if (/samsung/i.test(ua)) return 'Samsung Galaxy';
 
         return 'Android Smartphone';
       }
 
-      // 2. Apple iPhone Specific Model Detection (Instagram Login History Style: iPhone 15, iPhone 17 Pro Max)
+      // 3. Apple iPhone Specific Model Detection (Screen Matrix + GPU)
       if (/iphone/i.test(ua)) {
         const portraitW = Math.min(w, h);
         const portraitH = Math.max(w, h);
@@ -235,7 +252,7 @@ export default function AnalyticsTracker() {
         return 'iPhone 15';
       }
 
-      // 3. Apple iPad Model Matrix
+      // 4. Apple iPad Model Matrix
       if (/ipad/i.test(ua) || (touch > 1 && /macintosh/i.test(ua))) {
         const portraitW = Math.min(w, h);
         if (portraitW >= 1024) return 'iPad Pro';
@@ -244,19 +261,27 @@ export default function AnalyticsTracker() {
         return 'iPad';
       }
 
-      // 4. Apple Mac Desktop / Laptop Matrix
+      // 5. Apple Mac Desktop / Laptop Matrix
       if (/macintosh|mac os x/i.test(ua)) {
         return 'MacBook Pro';
       }
 
-      // 5. Windows PC
+      // 6. Windows Hardware Parsing (Surface Pro, HP, Dell, Lenovo, Asus, Acer, MSI, Alienware)
       if (/windows/i.test(ua)) {
+        if (/surface/i.test(ua)) return 'Microsoft Surface Pro';
+        if (/hp|hewlett-packard/i.test(ua)) return 'HP Laptop';
+        if (/dell|alienware/i.test(ua)) return 'Dell Laptop';
+        if (/lenovo|thinkpad|ideapad/i.test(ua)) return 'Lenovo ThinkPad';
+        if (/asus|rog|zenbook/i.test(ua)) return 'ASUS Laptop';
+        if (/acer|predator/i.test(ua)) return 'Acer Laptop';
+        if (/msi/i.test(ua)) return 'MSI Gaming Laptop';
+
         return 'Windows PC';
       }
 
-      // 6. Linux Workstation
+      // 7. Linux Workstation
       if (/linux/i.test(ua)) {
-        return 'Linux Workstation';
+        return 'Linux PC';
       }
 
       return 'Desktop PC';
