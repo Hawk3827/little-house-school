@@ -6,7 +6,7 @@ import { writeFile, unlink } from 'fs/promises';
 import path from 'path';
 import { saveUploadedFile } from '@/lib/uploadHelper';
 
-// GET all teachers
+// GET all teachers and admins
 export async function GET() {
   try {
     const session = await getSession();
@@ -15,7 +15,7 @@ export async function GET() {
     }
 
     const teachers = await prisma.user.findMany({
-      where: { role: 'TEACHER' },
+      where: { role: { in: ['TEACHER', 'ADMIN'] } },
       include: {
         profile: {
           include: {
@@ -101,16 +101,14 @@ export async function POST(request: Request) {
             name: name.trim(),
             phone: phone.trim() || null,
             address: address.trim() || null,
-            photoUrl: photoUrl,
+            photoUrl,
           }
         }
       },
-      include: {
-        profile: true
-      }
+      include: { profile: true }
     });
 
-    // If classId is provided, assign teacher to class
+    // Handle homeroom class assignment if provided
     if (classId && classId !== 'none') {
       await prisma.class.update({
         where: { id: classId },
@@ -118,17 +116,10 @@ export async function POST(request: Request) {
       });
     }
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       message: 'Teacher account created successfully.',
-      teacher: {
-        id: newUser.id,
-        email: newUser.email,
-        name: newUser.profile?.name,
-        phone: newUser.profile?.phone,
-        address: newUser.profile?.address,
-        photoUrl: newUser.profile?.photoUrl,
-      }
+      teacher: newUser
     });
   } catch (error: any) {
     console.error('Create teacher error:', error);
@@ -151,11 +142,11 @@ export async function PUT(request: Request) {
     const password = formData.get('password') as string;
     const phone = (formData.get('phone') as string) || '';
     const address = (formData.get('address') as string) || '';
-    const classId = formData.get('classId') as string; // 'none' or specific class ID or empty
+    const classId = formData.get('classId') as string;
     const photo = formData.get('photo') as File | null;
 
     if (!id || !name || !email) {
-      return NextResponse.json({ error: 'ID, Name, and Email are required.' }, { status: 400 });
+      return NextResponse.json({ error: 'Teacher ID, Name, and Email are required.' }, { status: 400 });
     }
 
     const teacherUser = await prisma.user.findUnique({
@@ -163,19 +154,23 @@ export async function PUT(request: Request) {
       include: { profile: true }
     });
 
-    if (!teacherUser || teacherUser.role !== 'TEACHER') {
-      return NextResponse.json({ error: 'Teacher not found.' }, { status: 404 });
+    if (!teacherUser) {
+      return NextResponse.json({ error: 'User record not found.' }, { status: 404 });
+    }
+
+    if (teacherUser.role === 'ADMIN') {
+      return NextResponse.json({ error: 'Admin accounts are read-only and cannot be modified on the portal.' }, { status: 403 });
     }
 
     const normalizedEmail = email.toLowerCase().trim();
 
-    // Check email uniqueness if changed
+    // Check email uniqueness if email changed
     if (normalizedEmail !== teacherUser.email) {
       const emailTaken = await prisma.user.findUnique({
         where: { email: normalizedEmail }
       });
       if (emailTaken) {
-        return NextResponse.json({ error: 'Email already in use by another account.' }, { status: 400 });
+        return NextResponse.json({ error: 'Another account is already using this email.' }, { status: 400 });
       }
     }
 
@@ -269,8 +264,12 @@ export async function DELETE(request: Request) {
       include: { profile: true }
     });
 
-    if (!teacherUser || teacherUser.role !== 'TEACHER') {
-      return NextResponse.json({ error: 'Teacher not found.' }, { status: 404 });
+    if (!teacherUser) {
+      return NextResponse.json({ error: 'User record not found.' }, { status: 404 });
+    }
+
+    if (teacherUser.role === 'ADMIN') {
+      return NextResponse.json({ error: 'Admin accounts are read-only and cannot be deleted on the portal.' }, { status: 403 });
     }
 
     // Unassign all classes taught by this teacher

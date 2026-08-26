@@ -385,12 +385,13 @@ export default function AdminTeacherManagement({
                 </tr>
               ) : (
                 filteredTeachers.map((teacher) => {
-                  const teacherName = teacher.profile?.name || 'Unnamed Teacher';
+                  const teacherName = teacher.profile?.name || 'Unnamed User';
                   const assignedClass = teacher.profile?.taughtClasses?.[0];
+                  const isAdmin = (teacher as any).role === 'ADMIN';
 
                   return (
-                    <tr key={teacher.id} className="hover:bg-gray-50 transition-colors">
-                      {/* Teacher Name & Photo */}
+                    <tr key={teacher.id} className={`transition-colors ${isAdmin ? 'bg-amber-50/30 hover:bg-amber-50/60' : 'hover:bg-gray-50'}`}>
+                      {/* Name & Photo */}
                       <td className="py-3.5 px-4 font-semibold text-gray-900 flex items-center space-x-3">
                         <button
                           type="button"
@@ -405,15 +406,23 @@ export default function AdminTeacherManagement({
                             <img
                               src={teacher.profile.photoUrl}
                               alt={teacherName}
-                              className="w-9 h-9 rounded-full object-cover border border-gray-200 group-hover:ring-2 group-hover:ring-indigo-500 transition"
+                              className={`w-9 h-9 rounded-full object-cover border transition ${isAdmin ? 'border-amber-400 ring-2 ring-amber-200' : 'border-gray-200 group-hover:ring-2 group-hover:ring-indigo-500'}`}
                             />
                           ) : (
-                            <div className="w-9 h-9 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-xs uppercase border border-indigo-150 group-hover:ring-2 group-hover:ring-indigo-500 transition">
-                              {teacherName.slice(0, 2)}
+                            <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs uppercase border transition ${isAdmin ? 'bg-amber-100 text-amber-900 border-amber-300' : 'bg-indigo-50 text-indigo-600 border-indigo-150 group-hover:ring-2 group-hover:ring-indigo-500'}`}>
+                              {isAdmin ? '👑' : teacherName.slice(0, 2)}
                             </div>
                           )}
                         </button>
-                        <span className="font-semibold text-gray-900">{teacherName}</span>
+                        <div className="flex flex-col">
+                          <span className="font-bold text-gray-900 flex items-center space-x-1.5">
+                            <span>{teacherName}</span>
+                            {isAdmin && <span className="text-xs" title="System Administrator">👑</span>}
+                          </span>
+                          {isAdmin && (
+                            <span className="text-[10px] font-mono font-bold text-purple-700">Administrator Account</span>
+                          )}
+                        </div>
                       </td>
 
                       {/* Login Email */}
@@ -421,9 +430,14 @@ export default function AdminTeacherManagement({
                         {teacher.email}
                       </td>
 
-                      {/* Assigned Class */}
+                      {/* Assigned Class / Role */}
                       <td className="py-3.5 px-4">
-                        {assignedClass ? (
+                        {isAdmin ? (
+                          <span className="bg-amber-100 text-amber-950 text-xs px-2.5 py-1 rounded-full font-black border border-amber-300 inline-flex items-center space-x-1 shadow-2xs">
+                            <ShieldCheck className="h-3.5 w-3.5 text-amber-700" />
+                            <span>👑 SYSTEM ADMIN</span>
+                          </span>
+                        ) : assignedClass ? (
                           <span className="bg-purple-50 text-purple-700 text-xs px-2.5 py-1 rounded-full font-bold border border-purple-100 inline-flex items-center space-x-1">
                             <School className="h-3 w-3" />
                             <span>{assignedClass.name}</span>
@@ -440,33 +454,52 @@ export default function AdminTeacherManagement({
 
                       {/* Portal Access Badge */}
                       <td className="py-3.5 px-4">
-                        <span className="bg-green-50 text-green-700 border border-green-200 text-[10px] px-2 py-0.5 rounded-full font-bold inline-flex items-center space-x-1">
-                          <CheckCircle2 className="h-3 w-3" />
-                          <span>Active Access</span>
-                        </span>
+                        {isAdmin ? (
+                          <span className="bg-purple-100 text-purple-900 border border-purple-300 text-[10px] px-2.5 py-0.5 rounded-full font-extrabold inline-flex items-center space-x-1">
+                            <Lock className="h-3 w-3 text-purple-700" />
+                            <span>Admin Access (Read-Only)</span>
+                          </span>
+                        ) : (
+                          <span className="bg-green-50 text-green-700 border border-green-200 text-[10px] px-2 py-0.5 rounded-full font-bold inline-flex items-center space-x-1">
+                            <CheckCircle2 className="h-3 w-3" />
+                            <span>Active Access</span>
+                          </span>
+                        )}
                       </td>
 
                       {/* Actions */}
-                      <td className="py-3.5 px-4 text-right space-x-2">
-                        <button
-                          onClick={() => setEditingTeacher(teacher)}
-                          className="text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 p-1.5 rounded-lg transition inline-flex items-center"
-                          title="Edit Teacher details"
-                        >
-                          <Edit3 className="h-4 w-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteTeacher(teacher.id, teacherName)}
-                          disabled={deletingId === teacher.id}
-                          className="text-red-500 hover:text-red-750 hover:bg-red-50 p-1.5 rounded-lg transition disabled:opacity-50 inline-flex items-center"
-                          title="Revoke Access & Delete Teacher"
-                        >
-                          {deletingId === teacher.id ? (
-                            <Loader2 className="h-4 w-4 animate-spin text-red-500" />
-                          ) : (
-                            <Trash2 className="h-4 w-4" />
-                          )}
-                        </button>
+                      <td className="py-3.5 px-4 text-right">
+                        {isAdmin ? (
+                          <span 
+                            title="Admin credentials are read-only and cannot be modified by other admins on the portal."
+                            className="text-slate-400 font-mono text-[11px] font-bold bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-xl inline-flex items-center space-x-1 cursor-not-allowed select-none"
+                          >
+                            <Lock className="h-3.5 w-3.5 text-slate-400" />
+                            <span>Read-Only</span>
+                          </span>
+                        ) : (
+                          <div className="space-x-2">
+                            <button
+                              onClick={() => setEditingTeacher(teacher)}
+                              className="text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 p-1.5 rounded-lg transition inline-flex items-center"
+                              title="Edit Teacher details"
+                            >
+                              <Edit3 className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteTeacher(teacher.id, teacherName)}
+                              disabled={deletingId === teacher.id}
+                              className="text-red-500 hover:text-red-750 hover:bg-red-50 p-1.5 rounded-lg transition disabled:opacity-50 inline-flex items-center"
+                              title="Revoke Access & Delete Teacher"
+                            >
+                              {deletingId === teacher.id ? (
+                                <Loader2 className="h-4 w-4 animate-spin text-red-500" />
+                              ) : (
+                                <Trash2 className="h-4 w-4" />
+                              )}
+                            </button>
+                          </div>
+                        )}
                       </td>
                     </tr>
                   );
