@@ -104,6 +104,7 @@ export default function AdminFeeManagement() {
   const [cellMode, setCellMode] = useState<'ONLINE_UPI' | 'OFFLINE_CASH'>('ONLINE_UPI');
   const [cellRefId, setCellRefId] = useState('');
   const [cellAmount, setCellAmount] = useState('1200');
+  const [cellStaffPin, setCellStaffPin] = useState('');
   const [cellSubmitting, setCellSubmitting] = useState(false);
   const [cellError, setCellError] = useState('');
   const [isEditingCell, setIsEditingCell] = useState(false);
@@ -233,6 +234,10 @@ export default function AdminFeeManagement() {
       setCellError('Please enter Reference ID or Receipt Number.');
       return;
     }
+    if (!cellStaffPin.trim()) {
+      setCellError('Please enter your Staff Security PIN for accountability audit.');
+      return;
+    }
 
     setCellSubmitting(true);
     setCellError('');
@@ -249,6 +254,7 @@ export default function AdminFeeManagement() {
         totalAmount: Number(cellAmount),
         paymentMode: cellMode === 'ONLINE_UPI' ? 'UPI_ONLINE' : 'CASH_OFFLINE',
         paymentRef: cellRefId.trim(),
+        securityPin: cellStaffPin.trim(),
       };
 
       const res = await fetch('/api/public/pay-fee', {
@@ -265,6 +271,7 @@ export default function AdminFeeManagement() {
       setPayments([data.payment, ...payments]);
       setCellModalOpen(false);
       setCellRefId('');
+      setCellStaffPin('');
     } catch (err: any) {
       setCellError(err.message || 'Error saving fee payment.');
     } finally {
@@ -587,6 +594,13 @@ export default function AdminFeeManagement() {
                                         <span>Amount:</span>
                                         <span className="font-bold text-emerald-700">₹{payment.totalAmount.toLocaleString('en-IN')}</span>
                                       </div>
+                                      <div className="flex justify-between border-t border-emerald-200/60 pt-1.5 text-slate-700">
+                                        <span>Recorded By:</span>
+                                        <span className="font-bold text-purple-900 flex items-center space-x-1">
+                                          <ShieldCheck className="h-3 w-3 text-purple-600 inline" />
+                                          <span>{(payment as any).recordedBy || 'Admin Office'}</span>
+                                        </span>
+                                      </div>
                                     </div>
 
                                     <div className="flex items-center space-x-2">
@@ -662,6 +676,26 @@ export default function AdminFeeManagement() {
                                         value={cellAmount}
                                         onChange={(e) => setCellAmount(e.target.value)}
                                         className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-extrabold text-emerald-700 focus:ring-2 focus:ring-emerald-500"
+                                      />
+                                    </div>
+
+                                    {/* STAFF SECURITY PIN FOR ACCOUNTABILITY */}
+                                    <div className="p-2.5 bg-purple-50/70 border border-purple-200 rounded-xl space-y-1">
+                                      <label className="block text-[10px] font-extrabold text-purple-900 uppercase tracking-wider flex items-center justify-between">
+                                        <span className="flex items-center space-x-1">
+                                          <ShieldCheck className="h-3.5 w-3.5 text-purple-700" />
+                                          <span>Staff Security PIN *</span>
+                                        </span>
+                                        <span className="text-[9px] font-mono text-purple-600 font-normal">Accountability Audit</span>
+                                      </label>
+                                      <input
+                                        type="password"
+                                        required
+                                        maxLength={6}
+                                        value={cellStaffPin}
+                                        onChange={(e) => setCellStaffPin(e.target.value)}
+                                        placeholder="Enter your Staff PIN (e.g. 1234)"
+                                        className="w-full px-3 py-2 bg-white border border-purple-300 rounded-lg text-xs font-mono font-bold text-purple-900 focus:ring-2 focus:ring-purple-500 placeholder:text-purple-300"
                                       />
                                     </div>
 

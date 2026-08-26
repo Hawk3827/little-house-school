@@ -98,10 +98,37 @@ export async function POST(request: Request) {
       totalAmount,
       paymentMode,
       paymentRef,
+      securityPin,
     } = body;
 
     if (!admissionNo || !paidMonths || !paymentRef || !totalAmount) {
       return NextResponse.json({ error: 'Please provide all required payment details and UTR reference.' }, { status: 400 });
+    }
+
+    let recordedBy = 'Online Parent Portal';
+    let recordedByPin: string | null = null;
+
+    // Staff Security PIN Verification & Accountability Audit
+    if (securityPin) {
+      const pinStr = String(securityPin).trim();
+      const staffUser = await prisma.user.findFirst({
+        where: {
+          securityPin: pinStr,
+          role: 'ADMIN',
+        },
+        include: {
+          profile: true,
+        },
+      });
+
+      if (!staffUser) {
+        return NextResponse.json({ 
+          error: 'Invalid Staff Security PIN. Fee payment entry rejected for accountability.' 
+        }, { status: 401 });
+      }
+
+      recordedBy = staffUser.profile?.name || staffUser.email;
+      recordedByPin = pinStr;
     }
 
     // Generate unique Receipt Number (e.g. LHS-FEE-2026-9482)
@@ -122,12 +149,14 @@ export async function POST(request: Request) {
         paymentMode: paymentMode || 'UPI_ONLINE',
         paymentRef: paymentRef.trim(),
         paymentStatus: 'PAID',
+        recordedBy,
+        recordedByPin,
       },
     });
 
     return NextResponse.json({
       success: true,
-      message: 'Monthly fee payment recorded successfully!',
+      message: `Monthly fee payment recorded successfully by ${recordedBy}!`,
       payment: newPayment,
     });
   } catch (error: any) {
