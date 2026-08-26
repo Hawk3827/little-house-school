@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Lock, KeyRound, Loader2, CheckCircle2, AlertCircle, X, ShieldCheck, Hash } from 'lucide-react';
 
 interface ChangeAdminPasswordModalProps {
@@ -16,6 +17,7 @@ export default function ChangeAdminPasswordModal({
   adminName,
   adminEmail,
 }: ChangeAdminPasswordModalProps) {
+  const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState<'PASSWORD' | 'PIN'>('PASSWORD');
 
   // Password state
@@ -32,7 +34,11 @@ export default function ChangeAdminPasswordModal({
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!isOpen || !mounted) return null;
 
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -140,13 +146,17 @@ export default function ChangeAdminPasswordModal({
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fadeIn">
-      <div className="bg-white rounded-3xl border border-sky-100 shadow-2xl w-full max-w-md overflow-hidden text-left select-none space-y-4 p-6 relative">
+  const modalContent = (
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-md animate-fadeIn">
+      <div 
+        className="fixed inset-0" 
+        onClick={onClose} 
+      />
+      <div className="bg-white rounded-3xl border border-sky-100 shadow-2xl w-full max-w-md overflow-hidden text-left select-none space-y-4 p-6 relative z-[100000]">
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 p-2 text-slate-400 hover:text-slate-700 bg-slate-100 rounded-full transition"
+          className="absolute top-5 right-5 p-2 text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-full transition"
         >
           <X className="h-4 w-4" />
         </button>
@@ -375,4 +385,6 @@ export default function ChangeAdminPasswordModal({
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 }
