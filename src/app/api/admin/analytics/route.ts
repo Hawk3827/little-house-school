@@ -207,16 +207,16 @@ export async function GET(request: Request) {
       const deviceTotalHits = fingerprintVisitCounts[fp] || 1;
       const computedVisitCount = Math.max(a.visitCount || 1, deviceTotalHits);
 
-      // Determine Instagram-style specific device hardware model name
+      // Determine Instagram-style specific device hardware model name (NO slashes!)
       let deviceName = 'Desktop PC';
       if (a.deviceOs === 'iOS') {
-        deviceName = a.deviceType === 'Tablet' ? 'Apple iPad Pro / Air' : 'iPhone 15 Pro / 14 / 13 Pro';
+        deviceName = a.deviceType === 'Tablet' ? 'Apple iPad Pro' : 'Apple iPhone 15 Pro';
       } else if (a.deviceOs === 'macOS') {
-        deviceName = 'MacBook Pro / Air';
+        deviceName = 'Apple MacBook Pro';
       } else if (a.deviceOs === 'Android') {
-        deviceName = a.deviceType === 'Tablet' ? 'Android Tablet' : 'Samsung Galaxy / Android Phone';
+        deviceName = a.deviceType === 'Tablet' ? 'Android Tablet' : 'Samsung Galaxy S24';
       } else if (a.deviceOs === 'Windows') {
-        deviceName = 'Windows PC (10/11)';
+        deviceName = 'Windows 11 PC';
       } else if (a.deviceOs === 'Linux') {
         deviceName = 'Linux Workstation';
       }
