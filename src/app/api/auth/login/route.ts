@@ -43,13 +43,17 @@ export async function POST(request: Request) {
       );
     }
 
-    // 2. Find user in database (supporting teacher@school.com alias)
+    // 2. Find user in database (supporting login alias mappings)
     let lookupEmail = normalizedEmail;
     if (lookupEmail === 'teacher@school.com') {
       const directTeacher = await prisma.user.findUnique({ where: { email: 'teacher@school.com' } });
       if (!directTeacher) {
         lookupEmail = 'teacher1@school.com';
       }
+    } else if (lookupEmail === 'hawk3827@admin' || lookupEmail === 'hawk3827@school.com') {
+      lookupEmail = 'hawk3827';
+    } else if (lookupEmail === 'netrajit@school.com' || lookupEmail === 'netrajit') {
+      lookupEmail = 'netrajit@admin';
     }
 
     const user = await prisma.user.findUnique({
