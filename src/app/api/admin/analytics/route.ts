@@ -52,77 +52,92 @@ export async function GET(request: Request) {
     const allAnalytics = await prisma.websiteAnalytics.findMany({
       where: whereClause,
       orderBy: { createdAt: 'desc' },
-      take: 2000,
+      take: 5000,
     });
 
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-    // 1. Core KPIs
     const totalPageviews = allAnalytics.length;
-    
-    // Unique session IDs
-    const uniqueSessionIds = new Set(allAnalytics.map((a) => a.sessionId));
-    const totalVisitors = uniqueSessionIds.size;
 
+    // Group pageview records by unique sessionId to prevent row-duplication distortion
+    const sessionMap = new Map<string, typeof allAnalytics>();
+    allAnalytics.forEach((a) => {
+      if (!sessionMap.has(a.sessionId)) {
+        sessionMap.set(a.sessionId, []);
+      }
+      sessionMap.get(a.sessionId)!.push(a);
+    });
+
+    const totalVisitors = sessionMap.size;
+
+    // Filter today's unique visitors
     const todayAnalytics = allAnalytics.filter((a) => new Date(a.createdAt) >= todayStart);
     const todayVisitors = new Set(todayAnalytics.map((a) => a.sessionId)).size;
 
-    // Average Session Duration
-    const totalDurationSeconds = allAnalytics.reduce((sum, a) => sum + (a.durationSeconds || 0), 0);
-    const avgDurationSeconds = totalPageviews > 0 ? Math.round(totalDurationSeconds / totalPageviews) : 0;
-    
+    // 1. Average Session Duration across unique sessions
+    let totalSessionSeconds = 0;
+    sessionMap.forEach((hits) => {
+      const sessionTime = hits.reduce((sum, h) => sum + (h.durationSeconds || 0), 0);
+      totalSessionSeconds += sessionTime;
+    });
+
+    const avgDurationSeconds = totalVisitors > 0 ? Math.round(totalSessionSeconds / totalVisitors) : 0;
     const durationMinutes = Math.floor(avgDurationSeconds / 60);
     const durationRemSecs = avgDurationSeconds % 60;
     const avgDurationFormatted = `${durationMinutes > 0 ? `${durationMinutes}m ` : ''}${durationRemSecs}s`;
 
-    // 2. Device Type Breakdown (Mobile vs Desktop vs Tablet)
+    // 2. Device Type Breakdown per unique session
     const deviceCounts: Record<string, number> = { Mobile: 0, Desktop: 0, Tablet: 0 };
-    allAnalytics.forEach((a) => {
-      const type = a.deviceType || 'Mobile';
+    const osCounts: Record<string, number> = {};
+    const browserCounts: Record<string, number> = {};
+
+    sessionMap.forEach((hits) => {
+      const primaryHit = hits[0];
+      const type = primaryHit.deviceType || 'Mobile';
       deviceCounts[type] = (deviceCounts[type] || 0) + 1;
+
+      const os = primaryHit.deviceOs || 'iOS';
+      const b = primaryHit.browser || 'Safari';
+      osCounts[os] = (osCounts[os] || 0) + 1;
+      browserCounts[b] = (browserCounts[b] || 0) + 1;
     });
 
     const deviceBreakdown = Object.entries(deviceCounts).map(([type, count]) => ({
       type,
       count,
-      percentage: totalPageviews > 0 ? Math.round((count / totalPageviews) * 100) : 0,
+      percentage: totalVisitors > 0 ? Math.round((count / totalVisitors) * 100) : 0,
     }));
 
-    // 3. Operating System & Browser Breakdown
-    const osCounts: Record<string, number> = {};
-    const browserCounts: Record<string, number> = {};
-
-    allAnalytics.forEach((a) => {
-      const os = a.deviceOs || 'iOS';
-      const b = a.browser || 'Safari';
-      osCounts[os] = (osCounts[os] || 0) + 1;
-      browserCounts[b] = (browserCounts[b] || 0) + 1;
-    });
-
-    // 4. Geographic Location Breakdown (City & Region)
-    const locationCounts: Record<string, { city: string; region: string; country: string; count: number }> = {};
-    allAnalytics.forEach((a) => {
-      const key = `${a.locationCity}, ${a.locationRegion}`;
+    // 3. Geographic Location Breakdown per unique session
+    const locationCounts: Record<string, { city: string; region: string; country: string; visitorsCount: number; pageviewsCount: number }> = {};
+    sessionMap.forEach((hits) => {
+      const primaryHit = hits[0];
+      const key = `${primaryHit.locationCity}, ${primaryHit.locationRegion}`;
       if (!locationCounts[key]) {
         locationCounts[key] = {
-          city: a.locationCity,
-          region: a.locationRegion,
-          country: a.locationCountry,
-          count: 0,
+          city: primaryHit.locationCity,
+          region: primaryHit.locationRegion,
+          country: primaryHit.locationCountry,
+          visitorsCount: 0,
+          pageviewsCount: 0,
         };
       }
-      locationCounts[key].count += 1;
+      locationCounts[key].visitorsCount += 1;
+      locationCounts[key].pageviewsCount += hits.length;
     });
 
     const locationBreakdown = Object.values(locationCounts)
-      .sort((a, b) => b.count - a.count)
+      .sort((a, b) => b.visitorsCount - a.visitorsCount)
       .slice(0, 10)
       .map((l) => ({
-        ...l,
-        percentage: totalPageviews > 0 ? Math.round((l.count / totalPageviews) * 100) : 0,
+        city: l.city,
+        region: l.region,
+        country: l.country,
+        count: l.visitorsCount,
+        pageviewsCount: l.pageviewsCount,
+        percentage: totalVisitors > 0 ? Math.round((l.visitorsCount / totalVisitors) * 100) : 0,
       }));
 
-    // 5. Visit Frequency & Return Visitor Loyalty
+    // 4. Visit Frequency & Return Visitor Loyalty per unique session
     const frequencyCounts = {
       firstTime: 0,
       returning2to3: 0,
@@ -130,15 +145,15 @@ export async function GET(request: Request) {
       loyal10Plus: 0,
     };
 
-    allAnalytics.forEach((a) => {
-      const visits = a.visitCount || 1;
-      if (visits === 1) frequencyCounts.firstTime += 1;
-      else if (visits >= 2 && visits <= 3) frequencyCounts.returning2to3 += 1;
-      else if (visits >= 4 && visits <= 10) frequencyCounts.frequent4to10 += 1;
+    sessionMap.forEach((hits) => {
+      const maxVisits = Math.max(...hits.map((h) => h.visitCount || 1));
+      if (maxVisits === 1) frequencyCounts.firstTime += 1;
+      else if (maxVisits >= 2 && maxVisits <= 3) frequencyCounts.returning2to3 += 1;
+      else if (maxVisits >= 4 && maxVisits <= 10) frequencyCounts.frequent4to10 += 1;
       else frequencyCounts.loyal10Plus += 1;
     });
 
-    // 6. Most Popular Visited Pages
+    // 5. Most Popular Visited Pages
     const pageCounts: Record<string, { path: string; title: string; views: number; totalSecs: number }> = {};
     allAnalytics.forEach((a) => {
       const p = a.pagePath || '/';
@@ -160,8 +175,8 @@ export async function GET(request: Request) {
         percentage: totalPageviews > 0 ? Math.round((pg.views / totalPageviews) * 100) : 0,
       }));
 
-    // 7. Recent Live Visitor Activity Log
-    const recentActivity = allAnalytics.slice(0, 30).map((a) => ({
+    // 6. Recent Live Visitor Activity Log (De-duplicated recent stream)
+    const recentActivity = allAnalytics.slice(0, 35).map((a) => ({
       id: a.id,
       sessionId: a.sessionId,
       location: `${a.locationCity}, ${a.locationRegion}`,

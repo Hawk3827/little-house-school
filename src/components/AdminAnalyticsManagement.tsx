@@ -40,6 +40,7 @@ interface LocationItem {
   region: string;
   country: string;
   count: number;
+  pageviewsCount?: number;
   percentage: number;
 }
 
@@ -470,8 +471,8 @@ export default function AdminAnalyticsManagement() {
                   </div>
 
                   <div className="text-right">
-                    <span className="font-mono font-black text-xs text-emerald-700">{l.count} Visits</span>
-                    <div className="text-[10px] font-mono text-slate-400">{l.percentage}% of total</div>
+                    <span className="font-mono font-black text-xs text-emerald-700">{l.count} {l.count === 1 ? 'Visitor' : 'Visitors'}</span>
+                    <div className="text-[10px] font-mono text-slate-500">{l.pageviewsCount || l.count} Pageviews ({l.percentage}%)</div>
                   </div>
                 </div>
               ))}

@@ -51,39 +51,40 @@ export default function AnalyticsTracker() {
         } catch (e) {}
       }
 
+      // Try Provider 1: ip-api.com
       try {
-        // Try primary IP location provider from accessing device
-        const res = await fetch('https://ipapi.co/json/', { cache: 'force-cache' });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.city) {
-            const loc = {
-              city: data.city || 'Imphal',
-              region: data.region || 'Manipur',
-              country: data.country_name || 'India',
+        const res1 = await fetch('https://ip-api.com/json/');
+        if (res1.ok) {
+          const data1 = await res1.json();
+          if (data1.city) {
+            const loc1 = {
+              city: data1.city,
+              region: data1.regionName || 'Manipur',
+              country: data1.country || 'India',
             };
-            sessionStorage.setItem('lh_client_geo', JSON.stringify(loc));
-            return loc;
+            sessionStorage.setItem('lh_client_geo', JSON.stringify(loc1));
+            return loc1;
           }
         }
-      } catch (e) {
-        // Fallback provider
-        try {
-          const res2 = await fetch('https://api.db-ip.com/v2/free/self');
-          if (res2.ok) {
-            const data2 = await res2.json();
-            if (data2.city) {
-              const loc2 = {
-                city: data2.city || 'Imphal',
-                region: data2.stateProv || 'Manipur',
-                country: data2.countryName || 'India',
-              };
-              sessionStorage.setItem('lh_client_geo', JSON.stringify(loc2));
-              return loc2;
-            }
+      } catch (e1) {}
+
+      // Try Provider 2: ipapi.co
+      try {
+        const res2 = await fetch('https://ipapi.co/json/');
+        if (res2.ok) {
+          const data2 = await res2.json();
+          if (data2.city) {
+            const loc2 = {
+              city: data2.city,
+              region: data2.region || 'Manipur',
+              country: data2.country_name || 'India',
+            };
+            sessionStorage.setItem('lh_client_geo', JSON.stringify(loc2));
+            return loc2;
           }
-        } catch (e2) {}
-      }
+        }
+      } catch (e2) {}
+
       return null;
     };
 
