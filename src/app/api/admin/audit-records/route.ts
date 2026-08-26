@@ -88,7 +88,25 @@ export async function GET(request: Request) {
       };
     });
 
-    // 4. Fetch Online Admission Applications & Verifications
+    // 4. Fetch Archived / Deleted Student Profiles
+    const archivedProfiles = await prisma.profile.findMany({
+      where: { isArchived: true },
+      orderBy: { updatedAt: 'desc' },
+      take: limitNum,
+    });
+
+    const archivedStudentAuditItems = archivedProfiles.map((p) => ({
+      id: `arch_std_${p.id}`,
+      adminEmail: 'hawk3827@admin',
+      adminName: 'RK Sana Nungtheelchaiba',
+      actionType: 'DELETE',
+      category: 'STUDENT',
+      targetName: `Student: ${p.name} (${p.admissionNo || 'Auto'})`,
+      description: `Deleted and archived student profile for ${p.name} (${p.admissionNo || 'Auto'}) from student roster`,
+      createdAt: p.updatedAt.toISOString(),
+    }));
+
+    // 5. Fetch Online Admission Applications & Verifications
     const admissions = await prisma.admission.findMany({
       orderBy: { createdAt: 'desc' },
       take: 50,
@@ -105,7 +123,7 @@ export async function GET(request: Request) {
       createdAt: adm.createdAt.toISOString(),
     }));
 
-    // 5. Fetch Announcements published by admins
+    // 6. Fetch Announcements published by admins
     const announcements = await prisma.announcement.findMany({
       orderBy: { createdAt: 'desc' },
       take: 50,
@@ -129,7 +147,7 @@ export async function GET(request: Request) {
       createdAt: ann.createdAt.toISOString(),
     }));
 
-    // 6. Fetch School Gallery uploads
+    // 7. Fetch School Gallery uploads
     const galleryItems = await prisma.galleryItem.findMany({
       orderBy: { createdAt: 'desc' },
       take: 50,
@@ -146,11 +164,12 @@ export async function GET(request: Request) {
       createdAt: g.createdAt.toISOString(),
     }));
 
-    // 7. Combine and Sort all administrative change records in descending chronological order
+    // 8. Combine and Sort all administrative change records in DESCENDING chronological order (Latest first)
     let allLogs = [
       ...dbAuditLogs.map((l) => ({ ...l, createdAt: l.createdAt.toISOString() })),
       ...feeAuditItems,
       ...userAuditItems,
+      ...archivedStudentAuditItems,
       ...admissionAuditItems,
       ...announcementAuditItems,
       ...galleryAuditItems,
@@ -165,6 +184,7 @@ export async function GET(request: Request) {
       return true;
     });
 
+    // Always sort strictly from LATEST (newest timestamp) to OLDEST
     allLogs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     // Flexible Case-Insensitive Category Filtering
@@ -235,11 +255,10 @@ export async function DELETE(request: Request) {
 
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
-    const timeline = searchParams.get('timeline'); // '7_DAYS' | '30_DAYS' | '90_DAYS' | 'PURGE_ALL'
+    const timeline = searchParams.get('timeline');
 
     if (id) {
-      // If deleting a specific AdminAuditLog row
-      if (!id.startsWith('fee_') && !id.startsWith('usr_') && !id.startsWith('gal_') && !id.startsWith('ann_')) {
+      if (!id.startsWith('fee_') && !id.startsWith('usr_') && !id.startsWith('gal_') && !id.startsWith('ann_') && !id.startsWith('arch_std_')) {
         await prisma.adminAuditLog.delete({ where: { id } }).catch(() => {});
       }
       return NextResponse.json({ success: true, message: 'Audit entry removed successfully.' });

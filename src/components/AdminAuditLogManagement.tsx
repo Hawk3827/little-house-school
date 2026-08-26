@@ -118,7 +118,7 @@ export default function AdminAuditLogManagement() {
     );
   }
 
-  // Filter & Sort logs by search query and timestamp
+  // Filter & Sort logs by search query and timestamp (Default: Latest log first)
   const filteredLogs = logs
     .filter((item) => {
       const q = searchQuery.toLowerCase();
@@ -137,7 +137,7 @@ export default function AdminAuditLogManagement() {
     .sort((a, b) => {
       const timeA = new Date(a.createdAt).getTime() || 0;
       const timeB = new Date(b.createdAt).getTime() || 0;
-      return sortOrder === 'NEWEST' ? timeB - timeA : timeA - timeB;
+      return timeB - timeA;
     });
 
   // Export to CSV
@@ -283,16 +283,6 @@ export default function AdminAuditLogManagement() {
               {cat.label}
             </button>
           ))}
-
-          <button
-            type="button"
-            onClick={() => setSortOrder(sortOrder === 'NEWEST' ? 'OLDEST' : 'NEWEST')}
-            className="px-3 py-1.5 bg-slate-900 text-white hover:bg-slate-800 rounded-xl text-xs font-mono font-bold flex items-center space-x-1 transition shadow-sm ml-1"
-            title="Toggle Sort Order"
-          >
-            <ArrowUpDown className="h-3.5 w-3.5 text-emerald-400" />
-            <span>{sortOrder === 'NEWEST' ? '⬇️ Newest First' : '⬆️ Oldest First'}</span>
-          </button>
         </div>
       </div>
 
