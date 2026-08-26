@@ -1,11 +1,22 @@
 import { NextResponse } from 'next/server';
+import { getSession } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
-// GET: Fetch Admin Audit & Change Logs
+// GET: Fetch Admin Audit & Change Logs (EXCLUSIVE to Master Admin hawk3827@admin)
 export async function GET(request: Request) {
   try {
+    const session = await getSession();
+    const userEmail = (session?.email || (session as any)?.user?.email || '').toLowerCase();
+
+    if (!session || session.role !== 'ADMIN' || !userEmail.includes('hawk3827')) {
+      return NextResponse.json(
+        { error: 'Forbidden: Admin Audit & Change Log is strictly restricted to Master Administrator hawk3827@admin.' },
+        { status: 403 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const category = searchParams.get('category') || 'ALL';
     const limitParam = searchParams.get('limit') || '100';

@@ -41,6 +41,9 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const role = (session as any).role || (session as any).user?.role || 'STUDENT';
 
+  const userEmail = ((session as any)?.email || (session as any)?.user?.email || '').toLowerCase();
+  const isMasterAdmin = userEmail.includes('hawk3827');
+
   // Navigation schema based on user role
   const getNavSections = () => {
     if (role === 'ADMIN') {
@@ -126,13 +129,15 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
         {
           heading: 'SYSTEM & SAFETY',
           items: [
-            {
-              name: 'Admin Audit & Change Log',
-              href: '/portal/admin?tab=audit-log',
-              isActive: pathname === '/portal/admin' && currentTab === 'audit-log',
-              icon: KeyRound,
-              badge: 'STAFF'
-            },
+            ...(isMasterAdmin ? [
+              {
+                name: 'Admin Audit & Change Log',
+                href: '/portal/admin?tab=audit-log',
+                isActive: pathname === '/portal/admin' && currentTab === 'audit-log',
+                icon: KeyRound,
+                badge: 'MASTER'
+              }
+            ] : []),
             {
               name: 'Google Drive Backups',
               href: '/portal/admin?tab=backups',

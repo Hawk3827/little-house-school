@@ -35,15 +35,20 @@ interface AuditLogItem {
 export default function AdminAuditLogManagement() {
   const [logs, setLogs] = useState<AuditLogItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [accessForbidden, setAccessForbidden] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [limit, setLimit] = useState('100');
 
   const fetchAuditLogs = async () => {
     setLoading(true);
+    setAccessForbidden(false);
     try {
       const res = await fetch(`/api/admin/audit-log?category=${selectedCategory}&limit=${limit}`);
-      if (res.ok) {
+      if (res.status === 403) {
+        setAccessForbidden(true);
+        setLogs([]);
+      } else if (res.ok) {
         const data = await res.json();
         setLogs(data.logs || []);
       }
@@ -54,6 +59,20 @@ export default function AdminAuditLogManagement() {
   useEffect(() => {
     fetchAuditLogs();
   }, [selectedCategory, limit]);
+
+  if (accessForbidden) {
+    return (
+      <div className="bg-white p-12 rounded-3xl border border-amber-200 text-center space-y-4 max-w-xl mx-auto my-12 shadow-sm">
+        <div className="w-16 h-16 bg-amber-100 text-amber-800 rounded-3xl flex items-center justify-center mx-auto font-mono text-2xl font-bold">
+          🔐
+        </div>
+        <h3 className="text-xl font-extrabold text-slate-900">Access Restricted</h3>
+        <p className="text-xs text-slate-600 leading-relaxed font-medium">
+          The <strong>Admin Audit & Change Log</strong> is exclusive to Master Administrator <strong>hawk3827@admin</strong>. Other staff admin accounts do not have permission to view change records.
+        </p>
+      </div>
+    );
+  }
 
   // Filter logs by search query
   const filteredLogs = logs.filter((item) => {
