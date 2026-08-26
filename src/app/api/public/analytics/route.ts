@@ -109,6 +109,12 @@ export async function POST(request: Request) {
       },
     });
 
+    // 🧹 AUTOMATED 2-DAY DATA RETENTION PURGE: Automatically delete analytics records older than 48 hours
+    const twoDaysAgo = new Date(Date.now() - 48 * 60 * 60 * 1000);
+    prisma.websiteAnalytics.deleteMany({
+      where: { createdAt: { lt: twoDaysAgo } },
+    }).catch((err) => console.error('Error auto-purging 2-day old analytics:', err));
+
     return NextResponse.json({ success: true, recordId: record.id });
   } catch (error: any) {
     console.error('Analytics tracking error:', error);

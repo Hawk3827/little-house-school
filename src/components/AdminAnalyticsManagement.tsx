@@ -18,7 +18,8 @@ import {
   Filter,
   RefreshCw,
   FileText,
-  X
+  X,
+  Trash2
 } from 'lucide-react';
 
 interface AnalyticsSummary {
@@ -134,6 +135,35 @@ export default function AdminAnalyticsManagement() {
     setEndDate('');
   };
 
+  const [purging, setPurging] = useState(false);
+
+  const handlePurgeOldAnalytics = async () => {
+    if (!confirm('Are you sure you want to delete all visitor analytics records older than 2 days (48 hours)?')) {
+      return;
+    }
+
+    try {
+      setPurging(true);
+      const res = await fetch('/api/admin/analytics/purge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ days: 2 }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        alert(data.message || 'Analytics older than 2 days successfully purged!');
+        fetchAnalyticsData();
+      } else {
+        alert(data.error || 'Failed to purge analytics.');
+      }
+    } catch (err: any) {
+      alert(err.message || 'Error occurred while purging analytics.');
+    } finally {
+      setPurging(false);
+    }
+  };
+
   return (
     <div className="space-y-6 text-left select-none">
       {/* Top Banner Header */}
@@ -142,18 +172,34 @@ export default function AdminAnalyticsManagement() {
           <span className="text-[10px] font-mono font-extrabold tracking-widest text-emerald-300 bg-emerald-950/80 border border-emerald-500/40 px-3 py-1 rounded-full uppercase">
             REAL-TIME WEBSITE TELEMETRY & TRAFFIC ENGINE
           </span>
-          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Website Traffic & Visitor Analytics</h2>
-          <p className="text-xs text-sky-200 font-normal">Track visitor volume, session duration, device types, return frequency, and geographic locations in real-time.</p>
+          <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+            Website Traffic & Visitor Analytics
+          </h2>
+          <p className="text-xs text-sky-200/90 max-w-xl leading-relaxed">
+            Track visitor volume, session duration, device types, return frequency, and geographic locations in real-time. Automated 2-day data retention actively purges logs older than 48 hours.
+          </p>
         </div>
 
-        <button
-          onClick={fetchAnalyticsData}
-          disabled={loading}
-          className="px-4 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs rounded-2xl transition flex items-center space-x-1.5 shadow-lg active:scale-95 border border-amber-300 disabled:opacity-50 flex-shrink-0"
-        >
-          {loading ? <Loader2 className="h-4 w-4 animate-spin text-slate-950" /> : <Activity className="h-4 w-4 text-slate-950" />}
-          <span>{loading ? 'Refreshing...' : 'Refresh Live Traffic'}</span>
-        </button>
+        <div className="flex items-center space-x-2.5 flex-shrink-0">
+          <button
+            onClick={handlePurgeOldAnalytics}
+            disabled={purging}
+            title="Delete all analytics logs older than 2 days (48 hours)"
+            className="px-3.5 py-2.5 bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 border border-rose-400/30 font-bold text-xs rounded-2xl transition flex items-center space-x-1.5 backdrop-blur-sm disabled:opacity-50"
+          >
+            {purging ? <Loader2 className="h-4 w-4 animate-spin text-rose-300" /> : <Trash2 className="h-4 w-4 text-rose-300" />}
+            <span>{purging ? 'Purging...' : 'Purge >2 Days'}</span>
+          </button>
+
+          <button
+            onClick={fetchAnalyticsData}
+            disabled={loading}
+            className="px-4 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs rounded-2xl transition flex items-center space-x-1.5 shadow-lg active:scale-95 border border-amber-300 disabled:opacity-50"
+          >
+            {loading ? <Loader2 className="h-4 w-4 animate-spin text-slate-950" /> : <Activity className="h-4 w-4 text-slate-950" />}
+            <span>{loading ? 'Refreshing...' : 'Refresh Live Traffic'}</span>
+          </button>
+        </div>
       </div>
 
       {/* DATE & MONTH RANGE FILTER TOOLBAR */}
