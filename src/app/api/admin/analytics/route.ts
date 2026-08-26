@@ -160,13 +160,11 @@ export async function GET(request: Request) {
     };
 
     visitorFingerprintMap.forEach((hits) => {
-      // Calculate distinct visit days for this physical device
-      const distinctVisitDates = new Set(
-        hits.map((h) => new Date(h.createdAt).toISOString().split('T')[0])
-      );
-      const visits = distinctVisitDates.size;
+      // Calculate max visit count for this physical device across sessions and hits
+      const maxVisitCountRecord = Math.max(...hits.map((h) => h.visitCount || 1));
+      const visits = Math.max(hits.length, maxVisitCountRecord);
 
-      if (visits === 1) frequencyCounts.firstTime += 1;
+      if (visits <= 1) frequencyCounts.firstTime += 1;
       else if (visits >= 2 && visits <= 3) frequencyCounts.returning2to3 += 1;
       else if (visits >= 4 && visits <= 10) frequencyCounts.frequent4to10 += 1;
       else frequencyCounts.loyal10Plus += 1;
