@@ -574,52 +574,59 @@ export default function AdminAnalyticsManagement() {
             <p className="text-xs font-medium">No visitor activity recorded for selected date filter.</p>
           </div>
         ) : (
-          <div className="max-h-[480px] overflow-y-auto overflow-x-auto rounded-2xl border border-slate-200 scroll-smooth">
-            <table className="w-full text-left border-collapse text-xs">
-              <thead className="sticky top-0 z-10 bg-slate-900 text-white text-[10px] font-mono uppercase tracking-wider border-b border-slate-800 shadow-md">
-                <tr>
-                  <th className="py-3 px-4 bg-slate-900">Timestamp</th>
-                  <th className="py-3 px-4 bg-slate-900">Location</th>
-                  <th className="py-3 px-4 bg-slate-900">Device & OS</th>
-                  <th className="py-3 px-4 bg-slate-900">Browser</th>
-                  <th className="py-3 px-4 bg-slate-900">Page Visited</th>
-                  <th className="py-3 px-4 bg-slate-900">Duration Spent</th>
-                  <th className="py-3 px-4 bg-slate-900">Visit Count</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 font-medium bg-white">
-                {recentActivity.map((a) => (
-                  <tr key={a.id} className="hover:bg-slate-50 transition">
-                    <td className="py-3 px-4 font-mono text-[11px] text-slate-500 whitespace-nowrap">
-                      {new Date(a.createdAt).toLocaleString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', day: '2-digit', month: 'short' })}
-                    </td>
-                    <td className="py-3 px-4 whitespace-nowrap">
-                      <span className="font-extrabold text-slate-900 flex items-center space-x-1">
-                        <MapPin className="h-3.5 w-3.5 text-emerald-600 flex-shrink-0" />
-                        <span>{a.location}</span>
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 whitespace-nowrap">
-                      <div className="font-bold text-slate-800">{a.deviceType} ({a.deviceOs})</div>
-                    </td>
-                    <td className="py-3 px-4 text-slate-600 whitespace-nowrap">
-                      {a.browser}
-                    </td>
-                    <td className="py-3 px-4 font-mono text-sky-800 font-bold whitespace-nowrap">
-                      {a.pagePath}
-                    </td>
-                    <td className="py-3 px-4 font-mono font-bold text-emerald-700 whitespace-nowrap">
-                      {a.durationSeconds}s
-                    </td>
-                    <td className="py-3 px-4 whitespace-nowrap">
-                      <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${a.visitCount > 1 ? 'bg-purple-100 text-purple-800' : 'bg-sky-100 text-sky-800'}`}>
-                        {a.visitCount > 1 ? `${a.visitCount}x Return` : '1st Visit'}
-                      </span>
-                    </td>
+          <div className="space-y-3">
+            <div className="max-h-[650px] overflow-y-auto overflow-x-auto rounded-2xl border border-slate-200 scroll-smooth">
+              <table className="w-full text-left border-collapse text-xs">
+                <thead className="sticky top-0 z-10 bg-slate-900 text-white text-[10px] font-mono uppercase tracking-wider border-b border-slate-800 shadow-md">
+                  <tr>
+                    <th className="py-3 px-4 bg-slate-900">Timestamp</th>
+                    <th className="py-3 px-4 bg-slate-900">Location</th>
+                    <th className="py-3 px-4 bg-slate-900">Device & OS</th>
+                    <th className="py-3 px-4 bg-slate-900">Browser</th>
+                    <th className="py-3 px-4 bg-slate-900">Page Visited</th>
+                    <th className="py-3 px-4 bg-slate-900">Duration Spent</th>
+                    <th className="py-3 px-4 bg-slate-900">Visit Count</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-100 font-medium bg-white">
+                  {recentActivity.map((a) => (
+                    <tr key={a.id} className="hover:bg-slate-50 transition">
+                      <td className="py-3 px-4 font-mono text-[11px] text-slate-500 whitespace-nowrap">
+                        {new Date(a.createdAt).toLocaleString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', day: '2-digit', month: 'short' })}
+                      </td>
+                      <td className="py-3 px-4 whitespace-nowrap">
+                        <span className="font-extrabold text-slate-900 flex items-center space-x-1">
+                          <MapPin className="h-3.5 w-3.5 text-emerald-600 flex-shrink-0" />
+                          <span>{a.location}</span>
+                        </span>
+                      </td>
+                      <td className="py-3 px-4 whitespace-nowrap">
+                        <div className="font-bold text-slate-800">{a.deviceType} ({a.deviceOs})</div>
+                      </td>
+                      <td className="py-3 px-4 text-slate-600 whitespace-nowrap">
+                        {a.browser}
+                      </td>
+                      <td className="py-3 px-4 font-mono text-sky-800 font-bold whitespace-nowrap">
+                        {a.pagePath}
+                      </td>
+                      <td className="py-3 px-4 font-mono font-bold text-emerald-700 whitespace-nowrap">
+                        {a.durationSeconds}s
+                      </td>
+                      <td className="py-3 px-4 whitespace-nowrap">
+                        <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${a.visitCount > 1 ? 'bg-purple-100 text-purple-800' : 'bg-sky-100 text-sky-800'}`}>
+                          {a.visitCount > 1 ? `${a.visitCount}x Return` : '1st Visit'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="flex items-center justify-between text-[11px] font-mono text-slate-500 px-1 pt-1">
+              <span>Showing <strong>{recentActivity.length}</strong> recent visitor log entries</span>
+              <span>👇 Scroll inside table to view older visitor history</span>
+            </div>
           </div>
         )}
       </div>

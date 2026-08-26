@@ -187,7 +187,7 @@ export async function GET(request: Request) {
       }));
 
     // 6. Recent Live Visitor Activity Log
-    const recentActivity = allAnalytics.slice(0, 35).map((a) => ({
+    const recentActivity = allAnalytics.slice(0, 100).map((a) => ({
       id: a.id,
       sessionId: a.sessionId,
       location: `${a.locationCity}, ${a.locationRegion}`,
