@@ -35,9 +35,13 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "LITTLE HOUSE Administration" }],
   icons: {
-    icon: "/school-logo.png?v=2",
-    shortcut: "/school-logo.png?v=2",
-    apple: "/school-logo.png?v=2",
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon.png", type: "image/png", sizes: "512x512" },
+      { url: "/school-logo.png", type: "image/png", sizes: "512x512" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
   },
   openGraph: {
     title: "LITTLE HOUSE • A Family of Learning (Waiton Lamkhai)",
@@ -83,6 +87,11 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/icon.png" />
+        <link rel="icon" type="image/png" sizes="192x192" href="/icon.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <link rel="shortcut icon" href="/favicon.ico" />
         <link rel="preload" as="image" href="/hero-bg.webp" type="image/webp" fetchPriority="high" />
         <StructuredData />
       </head>
