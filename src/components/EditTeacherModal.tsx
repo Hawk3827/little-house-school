@@ -12,6 +12,7 @@ interface ClassItem {
 export interface TeacherItem {
   id: string;
   email: string;
+  role?: string;
   profile: {
     name: string;
     phone: string | null;

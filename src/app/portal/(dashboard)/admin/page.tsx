@@ -43,10 +43,11 @@ export default async function AdminDashboard() {
       },
     }),
     prisma.user.findMany({
-      where: { role: 'TEACHER' },
+      where: { role: { in: ['TEACHER', 'ADMIN'] } },
       select: {
         id: true,
         email: true,
+        role: true,
         createdAt: true,
         profile: {
           select: {
