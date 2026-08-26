@@ -456,7 +456,7 @@ export default function AdminAnalyticsManagement() {
               <p className="text-xs font-medium">Waiting for location telemetry...</p>
             </div>
           ) : (
-            <div className="space-y-2.5">
+            <div className="space-y-2.5 max-h-[300px] overflow-y-auto pr-1 scroll-smooth">
               {locationBreakdown.map((l, idx) => (
                 <div key={idx} className="p-3 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between space-x-3">
                   <div className="flex items-center space-x-2.5">
@@ -534,7 +534,7 @@ export default function AdminAnalyticsManagement() {
             <FileText className="h-5 w-5 text-amber-600" />
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1 scroll-smooth">
             {popularPages.map((pg, idx) => (
               <div key={idx} className="p-3 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between">
                 <div className="space-y-0.5">
@@ -573,44 +573,44 @@ export default function AdminAnalyticsManagement() {
             <p className="text-xs font-medium">No visitor activity recorded for selected date filter.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="max-h-[480px] overflow-y-auto overflow-x-auto rounded-2xl border border-slate-200 scroll-smooth">
             <table className="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr className="bg-slate-900 text-white text-[10px] font-mono uppercase tracking-wider border-b border-slate-800">
-                  <th className="py-3 px-4">Timestamp</th>
-                  <th className="py-3 px-4">Location</th>
-                  <th className="py-3 px-4">Device & OS</th>
-                  <th className="py-3 px-4">Browser</th>
-                  <th className="py-3 px-4">Page Visited</th>
-                  <th className="py-3 px-4">Duration Spent</th>
-                  <th className="py-3 px-4">Visit Count</th>
+              <thead className="sticky top-0 z-10 bg-slate-900 text-white text-[10px] font-mono uppercase tracking-wider border-b border-slate-800 shadow-md">
+                <tr>
+                  <th className="py-3 px-4 bg-slate-900">Timestamp</th>
+                  <th className="py-3 px-4 bg-slate-900">Location</th>
+                  <th className="py-3 px-4 bg-slate-900">Device & OS</th>
+                  <th className="py-3 px-4 bg-slate-900">Browser</th>
+                  <th className="py-3 px-4 bg-slate-900">Page Visited</th>
+                  <th className="py-3 px-4 bg-slate-900">Duration Spent</th>
+                  <th className="py-3 px-4 bg-slate-900">Visit Count</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 font-medium">
+              <tbody className="divide-y divide-slate-100 font-medium bg-white">
                 {recentActivity.map((a) => (
                   <tr key={a.id} className="hover:bg-slate-50 transition">
-                    <td className="py-3 px-4 font-mono text-[11px] text-slate-500">
+                    <td className="py-3 px-4 font-mono text-[11px] text-slate-500 whitespace-nowrap">
                       {new Date(a.createdAt).toLocaleString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', day: '2-digit', month: 'short' })}
                     </td>
-                    <td className="py-3 px-4">
+                    <td className="py-3 px-4 whitespace-nowrap">
                       <span className="font-extrabold text-slate-900 flex items-center space-x-1">
-                        <MapPin className="h-3.5 w-3.5 text-emerald-600" />
+                        <MapPin className="h-3.5 w-3.5 text-emerald-600 flex-shrink-0" />
                         <span>{a.location}</span>
                       </span>
                     </td>
-                    <td className="py-3 px-4">
+                    <td className="py-3 px-4 whitespace-nowrap">
                       <div className="font-bold text-slate-800">{a.deviceType} ({a.deviceOs})</div>
                     </td>
-                    <td className="py-3 px-4 text-slate-600">
+                    <td className="py-3 px-4 text-slate-600 whitespace-nowrap">
                       {a.browser}
                     </td>
-                    <td className="py-3 px-4 font-mono text-sky-800 font-bold">
+                    <td className="py-3 px-4 font-mono text-sky-800 font-bold whitespace-nowrap">
                       {a.pagePath}
                     </td>
-                    <td className="py-3 px-4 font-mono font-bold text-emerald-700">
+                    <td className="py-3 px-4 font-mono font-bold text-emerald-700 whitespace-nowrap">
                       {a.durationSeconds}s
                     </td>
-                    <td className="py-3 px-4">
+                    <td className="py-3 px-4 whitespace-nowrap">
                       <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${a.visitCount > 1 ? 'bg-purple-100 text-purple-800' : 'bg-sky-100 text-sky-800'}`}>
                         {a.visitCount > 1 ? `${a.visitCount}x Return` : '1st Visit'}
                       </span>
