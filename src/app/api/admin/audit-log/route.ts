@@ -74,7 +74,6 @@ export async function GET(request: Request) {
       const nameStr = u.profile?.name || u.email;
       const isStudent = u.role === 'STUDENT';
       const isTeacher = u.role === 'TEACHER';
-      const isAdminRole = u.role === 'ADMIN';
 
       return {
         id: `usr_${u.id}`,
@@ -148,24 +147,7 @@ export async function GET(request: Request) {
       createdAt: g.createdAt.toISOString(),
     }));
 
-    // 7. Fetch Calendar & Exam Events
-    const events = await prisma.event.findMany({
-      orderBy: { createdAt: 'desc' },
-      take: 50,
-    });
-
-    const eventAuditItems = events.map((ev) => ({
-      id: `ev_${ev.id}`,
-      adminEmail: 'admin@school.com',
-      adminName: 'Academic Admin',
-      actionType: 'CREATE',
-      category: 'ANNOUNCEMENT',
-      targetName: `Calendar Event: ${ev.title}`,
-      description: `Scheduled ${ev.type.toLowerCase()} event "${ev.title}" on academic calendar`,
-      createdAt: ev.createdAt.toISOString(),
-    }));
-
-    // 8. Combine and Sort all administrative change records in descending chronological order
+    // 7. Combine and Sort all administrative change records in descending chronological order
     let allLogs = [
       ...dbAuditLogs.map((l) => ({ ...l, createdAt: l.createdAt.toISOString() })),
       ...feeAuditItems,
@@ -173,7 +155,6 @@ export async function GET(request: Request) {
       ...admissionAuditItems,
       ...announcementAuditItems,
       ...galleryAuditItems,
-      ...eventAuditItems,
     ];
 
     // Remove potential duplicate entries by description key
@@ -187,9 +168,20 @@ export async function GET(request: Request) {
 
     allLogs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-    // Apply category filter if specified
+    // Flexible Case-Insensitive Category Filtering
     if (category !== 'ALL') {
-      allLogs = allLogs.filter((l) => l.category === category);
+      const catUpper = category.toUpperCase().trim();
+      allLogs = allLogs.filter((l) => {
+        const itemCat = (l.category || '').toUpperCase().trim();
+        if (catUpper.startsWith('FEE') && itemCat.startsWith('FEE')) return true;
+        if (catUpper.startsWith('STUDENT') && itemCat.startsWith('STUDENT')) return true;
+        if (catUpper.startsWith('TEACHER') && itemCat.startsWith('TEACHER')) return true;
+        if (catUpper.startsWith('ANNOUNCE') && itemCat.startsWith('ANNOUNCE')) return true;
+        if (catUpper.startsWith('GALLERY') && itemCat.startsWith('GALLERY')) return true;
+        if (catUpper.startsWith('SECUR') && itemCat.startsWith('SECUR')) return true;
+        if (catUpper.startsWith('BACKUP') && itemCat.startsWith('BACKUP')) return true;
+        return itemCat === catUpper;
+      });
     }
 
     const finalLogs = allLogs.slice(0, limitNum);
