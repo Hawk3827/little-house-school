@@ -83,16 +83,18 @@ export default function AdminAnalyticsManagement() {
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Date & Month Filter State
+  // Date, Month & Limit Filter State
   const [filterPreset, setFilterPreset] = useState<'ALL_TIME' | 'TODAY' | 'YESTERDAY' | 'THIS_MONTH' | 'LAST_MONTH' | 'CUSTOM'>('ALL_TIME');
   const [selectedMonth, setSelectedMonth] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [hitLimit, setHitLimit] = useState<string>('500');
 
   const fetchAnalyticsData = async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams();
+      params.append('limit', hitLimit);
 
       if (filterPreset !== 'CUSTOM') {
         params.append('preset', filterPreset);
@@ -123,7 +125,7 @@ export default function AdminAnalyticsManagement() {
 
   useEffect(() => {
     fetchAnalyticsData();
-  }, [filterPreset, selectedMonth, startDate, endDate]);
+  }, [filterPreset, selectedMonth, startDate, endDate, hitLimit]);
 
   const handleResetFilters = () => {
     setFilterPreset('ALL_TIME');
@@ -558,14 +560,31 @@ export default function AdminAnalyticsManagement() {
 
       {/* Row 4: Real-Time Live Activity Log Table */}
       <div className="bg-white rounded-3xl border border-sky-100 shadow-sm overflow-hidden space-y-4 p-6">
-        <div className="flex items-center justify-between border-b pb-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b pb-3 gap-3">
           <div className="space-y-0.5">
             <span className="text-[10px] font-mono font-bold text-sky-800 bg-sky-100 px-2 py-0.5 rounded uppercase">
               REAL-TIME TRAFFIC FEED
             </span>
             <h3 className="text-lg font-extrabold text-slate-900">Live Visitor Telemetry Feed</h3>
           </div>
-          <Activity className="h-5 w-5 text-sky-600 animate-pulse" />
+
+          <div className="flex items-center space-x-1.5 bg-slate-100 p-1 rounded-2xl border border-slate-200 text-xs self-start sm:self-auto">
+            <span className="text-[10px] font-bold text-slate-500 uppercase px-2">Show History:</span>
+            {(['100', '250', '500', 'all'] as const).map((l) => (
+              <button
+                key={l}
+                type="button"
+                onClick={() => setHitLimit(l)}
+                className={`px-2.5 py-1 text-xs font-extrabold rounded-xl transition ${
+                  hitLimit === l
+                    ? 'bg-sky-600 text-white shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200'
+                }`}
+              >
+                {l === 'all' ? '⚡ All Hits' : `${l} Hits`}
+              </button>
+            ))}
+          </div>
         </div>
 
         {recentActivity.length === 0 ? (
