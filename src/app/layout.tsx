@@ -74,6 +74,7 @@ export const metadata: Metadata = {
 };
 
 import StructuredData from "@/components/StructuredData";
+import AnalyticsTracker from "@/components/AnalyticsTracker";
 
 export default function RootLayout({
   children,
@@ -90,6 +91,7 @@ export default function RootLayout({
         <StructuredData />
       </head>
       <body className={`${inter.className} antialiased bg-slate-50 text-slate-900 selection:bg-sky-500 selection:text-white min-h-screen`}>
+        <AnalyticsTracker />
         {children}
       </body>
     </html>

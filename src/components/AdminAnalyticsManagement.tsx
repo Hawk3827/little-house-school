@@ -1,0 +1,458 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { 
+  Users, 
+  Smartphone, 
+  Monitor, 
+  Tablet, 
+  MapPin, 
+  Clock, 
+  Eye, 
+  TrendingUp, 
+  Activity, 
+  Loader2, 
+  Globe, 
+  Sparkles, 
+  Repeat, 
+  Compass, 
+  BarChart3, 
+  ArrowUpRight,
+  ShieldCheck,
+  FileText
+} from 'lucide-react';
+
+interface AnalyticsSummary {
+  totalVisitors: number;
+  totalPageviews: number;
+  todayVisitors: number;
+  avgDurationSeconds: number;
+  avgDurationFormatted: string;
+}
+
+interface DeviceBreakdown {
+  type: string;
+  count: number;
+  percentage: number;
+}
+
+interface LocationItem {
+  city: string;
+  region: string;
+  country: string;
+  count: number;
+  percentage: number;
+}
+
+interface PageItem {
+  path: string;
+  title: string;
+  views: number;
+  avgDurationSecs: number;
+  percentage: number;
+}
+
+interface RecentActivity {
+  id: string;
+  sessionId: string;
+  location: string;
+  deviceType: string;
+  deviceOs: string;
+  browser: string;
+  pagePath: string;
+  pageTitle: string;
+  durationSeconds: number;
+  visitCount: number;
+  isNewVisitor: boolean;
+  createdAt: string;
+}
+
+export default function AdminAnalyticsManagement() {
+  const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
+  const [deviceBreakdown, setDeviceBreakdown] = useState<DeviceBreakdown[]>([]);
+  const [osCounts, setOsCounts] = useState<Record<string, number>>({});
+  const [browserCounts, setBrowserCounts] = useState<Record<string, number>>({});
+  const [locationBreakdown, setLocationBreakdown] = useState<LocationItem[]>([]);
+  const [frequencyCounts, setFrequencyCounts] = useState<{ firstTime: number; returning2to3: number; frequent4to10: number; loyal10Plus: number }>({
+    firstTime: 0,
+    returning2to3: 0,
+    frequent4to10: 0,
+    loyal10Plus: 0,
+  });
+  const [popularPages, setPopularPages] = useState<PageItem[]>([]);
+  const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchAnalyticsData = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch('/api/admin/analytics');
+      const data = await res.json();
+      if (data.success) {
+        setSummary(data.summary || null);
+        setDeviceBreakdown(data.deviceBreakdown || []);
+        setOsCounts(data.osCounts || {});
+        setBrowserCounts(data.browserCounts || {});
+        setLocationBreakdown(data.locationBreakdown || []);
+        setFrequencyCounts(data.frequencyCounts || { firstTime: 0, returning2to3: 0, frequent4to10: 0, loyal10Plus: 0 });
+        setPopularPages(data.popularPages || []);
+        setRecentActivity(data.recentActivity || []);
+      }
+    } catch (err) {
+      console.error('Error fetching analytics:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAnalyticsData();
+    const interval = setInterval(fetchAnalyticsData, 30000); // Auto refresh every 30 seconds
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="space-y-6 text-left select-none">
+      {/* Top Banner Header */}
+      <div className="bg-gradient-to-r from-sky-900 via-sky-800 to-indigo-950 text-white p-6 sm:p-8 rounded-[32px] shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+        <div className="space-y-1">
+          <span className="text-[10px] font-mono font-extrabold tracking-widest text-emerald-300 bg-emerald-950/80 border border-emerald-500/40 px-3 py-1 rounded-full uppercase">
+            REAL-TIME WEBSITE TELEMETRY & TRAFFIC ENGINE
+          </span>
+          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Website Traffic & Visitor Analytics</h2>
+          <p className="text-xs text-sky-200 font-normal">Track visitor volume, session duration, device types, return frequency, and geographic locations in real-time.</p>
+        </div>
+
+        <button
+          onClick={fetchAnalyticsData}
+          disabled={loading}
+          className="px-4 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs rounded-2xl transition flex items-center space-x-1.5 shadow-lg active:scale-95 border border-amber-300 disabled:opacity-50 flex-shrink-0"
+        >
+          {loading ? <Loader2 className="h-4 w-4 animate-spin text-slate-950" /> : <Activity className="h-4 w-4 text-slate-950" />}
+          <span>{loading ? 'Refreshing...' : 'Refresh Live Traffic'}</span>
+        </button>
+      </div>
+
+      {/* 4 Core Metric KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Card 1: Total Visitors */}
+        <div className="bg-white p-5 rounded-2xl border border-sky-100 shadow-sm space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-mono font-bold text-slate-500 uppercase tracking-wider">Total Unique Visitors</span>
+            <div className="p-2 bg-sky-100 text-sky-700 rounded-xl">
+              <Users className="h-5 w-5" />
+            </div>
+          </div>
+          <div>
+            <div className="text-2xl sm:text-3xl font-black text-slate-900">
+              {summary ? summary.totalVisitors.toLocaleString('en-IN') : '0'}
+            </div>
+            <p className="text-[11px] text-slate-400 mt-0.5">Unique visitor sessions tracked</p>
+          </div>
+        </div>
+
+        {/* Card 2: Today's Visitors */}
+        <div className="bg-white p-5 rounded-2xl border border-emerald-100 shadow-sm space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-mono font-bold text-emerald-700 uppercase tracking-wider">Today&apos;s Active Visitors</span>
+            <div className="p-2 bg-emerald-100 text-emerald-700 rounded-xl">
+              <TrendingUp className="h-5 w-5" />
+            </div>
+          </div>
+          <div>
+            <div className="text-2xl sm:text-3xl font-black text-slate-900">
+              {summary ? summary.todayVisitors.toLocaleString('en-IN') : '0'}
+            </div>
+            <p className="text-[11px] text-emerald-600 font-medium mt-0.5">Visited website in past 24 hours</p>
+          </div>
+        </div>
+
+        {/* Card 3: Avg Session Duration */}
+        <div className="bg-white p-5 rounded-2xl border border-purple-100 shadow-sm space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-mono font-bold text-purple-700 uppercase tracking-wider">Avg Session Duration</span>
+            <div className="p-2 bg-purple-100 text-purple-700 rounded-xl">
+              <Clock className="h-5 w-5" />
+            </div>
+          </div>
+          <div>
+            <div className="text-2xl sm:text-3xl font-black text-slate-900">
+              {summary ? summary.avgDurationFormatted : '0s'}
+            </div>
+            <p className="text-[11px] text-slate-400 mt-0.5">Time spent exploring website per visit</p>
+          </div>
+        </div>
+
+        {/* Card 4: Total Pageviews */}
+        <div className="bg-white p-5 rounded-2xl border border-amber-100 shadow-sm space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-mono font-bold text-amber-700 uppercase tracking-wider">Total Pageviews</span>
+            <div className="p-2 bg-amber-100 text-amber-700 rounded-xl">
+              <Eye className="h-5 w-5" />
+            </div>
+          </div>
+          <div>
+            <div className="text-2xl sm:text-3xl font-black text-slate-900">
+              {summary ? summary.totalPageviews.toLocaleString('en-IN') : '0'}
+            </div>
+            <p className="text-[11px] text-slate-400 mt-0.5">Total page hits across all sections</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Row 2: Device Breakdown & Location Breakdown */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        {/* Device & System Breakdown */}
+        <div className="bg-white p-6 rounded-3xl border border-sky-100 shadow-sm space-y-5">
+          <div className="flex items-center justify-between border-b pb-3">
+            <div className="space-y-0.5">
+              <span className="text-[10px] font-mono font-bold text-sky-800 bg-sky-100 px-2 py-0.5 rounded uppercase">
+                HARDWARE & BROWSER SPECS
+              </span>
+              <h3 className="text-lg font-extrabold text-slate-900">Device & Browser Breakdown</h3>
+            </div>
+            <Smartphone className="h-5 w-5 text-sky-600" />
+          </div>
+
+          <div className="space-y-4">
+            {/* Device Types */}
+            <div className="space-y-2">
+              <span className="text-xs font-bold text-slate-700">Device Type:</span>
+              <div className="grid grid-cols-3 gap-3">
+                {deviceBreakdown.map((d) => (
+                  <div key={d.type} className="p-3 bg-slate-50 border border-slate-200 rounded-2xl space-y-1">
+                    <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
+                      <span className="flex items-center space-x-1">
+                        {d.type === 'Mobile' ? <Smartphone className="h-3.5 w-3.5 text-sky-600" /> : d.type === 'Desktop' ? <Monitor className="h-3.5 w-3.5 text-purple-600" /> : <Tablet className="h-3.5 w-3.5 text-amber-600" />}
+                        <span>{d.type}</span>
+                      </span>
+                      <span className="font-bold text-slate-900">{d.percentage}%</span>
+                    </div>
+                    <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                      <div 
+                        className={`h-full rounded-full ${d.type === 'Mobile' ? 'bg-sky-500' : d.type === 'Desktop' ? 'bg-purple-500' : 'bg-amber-500'}`}
+                        style={{ width: `${d.percentage}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Operating Systems & Browsers */}
+            <div className="grid grid-cols-2 gap-4 pt-2 border-t border-slate-100 text-xs">
+              <div className="space-y-2">
+                <span className="font-bold text-slate-700 block">Operating Systems:</span>
+                <div className="space-y-1.5">
+                  {Object.entries(osCounts).map(([os, count]) => (
+                    <div key={os} className="flex justify-between items-center bg-slate-50 p-2 rounded-xl text-slate-700 font-medium">
+                      <span>{os}</span>
+                      <span className="font-mono font-bold text-slate-900">{count} hits</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <span className="font-bold text-slate-700 block">Web Browsers:</span>
+                <div className="space-y-1.5">
+                  {Object.entries(browserCounts).map(([b, count]) => (
+                    <div key={b} className="flex justify-between items-center bg-slate-50 p-2 rounded-xl text-slate-700 font-medium">
+                      <span>{b}</span>
+                      <span className="font-mono font-bold text-slate-900">{count} hits</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Geographic Location Breakdown */}
+        <div className="bg-white p-6 rounded-3xl border border-emerald-100 shadow-sm space-y-5">
+          <div className="flex items-center justify-between border-b pb-3">
+            <div className="space-y-0.5">
+              <span className="text-[10px] font-mono font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded uppercase">
+                GEOGRAPHIC LOCATION RADAR
+              </span>
+              <h3 className="text-lg font-extrabold text-slate-900">Visitor Location Breakdown</h3>
+            </div>
+            <MapPin className="h-5 w-5 text-emerald-600" />
+          </div>
+
+          {locationBreakdown.length === 0 ? (
+            <div className="py-12 text-center text-slate-400 space-y-2">
+              <Globe className="h-8 w-8 mx-auto text-slate-300" />
+              <p className="text-xs font-medium">Waiting for location telemetry...</p>
+            </div>
+          ) : (
+            <div className="space-y-2.5">
+              {locationBreakdown.map((l, idx) => (
+                <div key={idx} className="p-3 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between space-x-3">
+                  <div className="flex items-center space-x-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-800 font-mono font-extrabold text-xs flex items-center justify-center">
+                      #{idx + 1}
+                    </div>
+                    <div>
+                      <div className="font-extrabold text-xs text-slate-900">{l.city}, {l.region}</div>
+                      <span className="text-[10px] font-mono text-slate-500">{l.country}</span>
+                    </div>
+                  </div>
+
+                  <div className="text-right">
+                    <span className="font-mono font-black text-xs text-emerald-700">{l.count} Visits</span>
+                    <div className="text-[10px] font-mono text-slate-400">{l.percentage}% of total</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Row 3: Visit Frequency & Most Popular Pages */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        {/* Return Visitor Loyalty / Frequency */}
+        <div className="bg-white p-6 rounded-3xl border border-purple-100 shadow-sm space-y-5">
+          <div className="flex items-center justify-between border-b pb-3">
+            <div className="space-y-0.5">
+              <span className="text-[10px] font-mono font-bold text-purple-800 bg-purple-100 px-2 py-0.5 rounded uppercase">
+                VISIT FREQUENCY & LOYALTY
+              </span>
+              <h3 className="text-lg font-extrabold text-slate-900">Visitor Return Frequency</h3>
+            </div>
+            <Repeat className="h-5 w-5 text-purple-600" />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="p-4 bg-sky-50 border border-sky-200 rounded-2xl space-y-1">
+              <span className="text-[10px] font-mono font-bold text-sky-800 uppercase">First-Time Visitors (1x)</span>
+              <div className="text-2xl font-black text-slate-900">{frequencyCounts.firstTime}</div>
+              <p className="text-[10px] text-slate-500">First time visiting school website</p>
+            </div>
+
+            <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl space-y-1">
+              <span className="text-[10px] font-mono font-bold text-emerald-800 uppercase">Returning Visitors (2-3x)</span>
+              <div className="text-2xl font-black text-slate-900">{frequencyCounts.returning2to3}</div>
+              <p className="text-[10px] text-slate-500">Returned 2 to 3 times</p>
+            </div>
+
+            <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl space-y-1">
+              <span className="text-[10px] font-mono font-bold text-amber-800 uppercase">Frequent Visitors (4-10x)</span>
+              <div className="text-2xl font-black text-slate-900">{frequencyCounts.frequent4to10}</div>
+              <p className="text-[10px] text-slate-500">Returned 4 to 10 times</p>
+            </div>
+
+            <div className="p-4 bg-purple-50 border border-purple-200 rounded-2xl space-y-1">
+              <span className="text-[10px] font-mono font-bold text-purple-800 uppercase">Loyal Parents / Staff (10x+)</span>
+              <div className="text-2xl font-black text-slate-900">{frequencyCounts.loyal10Plus}</div>
+              <p className="text-[10px] text-slate-500">Frequent portal & fee users</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Most Popular Pages Ranking */}
+        <div className="bg-white p-6 rounded-3xl border border-amber-100 shadow-sm space-y-5">
+          <div className="flex items-center justify-between border-b pb-3">
+            <div className="space-y-0.5">
+              <span className="text-[10px] font-mono font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded uppercase">
+                PAGE TRAFFIC RANKING
+              </span>
+              <h3 className="text-lg font-extrabold text-slate-900">Most Visited Pages</h3>
+            </div>
+            <FileText className="h-5 w-5 text-amber-600" />
+          </div>
+
+          <div className="space-y-2">
+            {popularPages.map((pg, idx) => (
+              <div key={idx} className="p-3 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <div className="font-extrabold text-xs text-slate-900 flex items-center space-x-2">
+                    <span className="font-mono text-amber-600 font-black">#{idx + 1}</span>
+                    <span>{pg.path}</span>
+                  </div>
+                  <span className="text-[10px] text-slate-500">{pg.title}</span>
+                </div>
+
+                <div className="text-right">
+                  <span className="font-mono font-black text-xs text-slate-900">{pg.views} Pageviews</span>
+                  <div className="text-[10px] font-mono text-emerald-700">Avg {pg.avgDurationSecs}s spent</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Row 4: Real-Time Live Activity Log Table */}
+      <div className="bg-white rounded-3xl border border-sky-100 shadow-sm overflow-hidden space-y-4 p-6">
+        <div className="flex items-center justify-between border-b pb-3">
+          <div className="space-y-0.5">
+            <span className="text-[10px] font-mono font-bold text-sky-800 bg-sky-100 px-2 py-0.5 rounded uppercase">
+              REAL-TIME TRAFFIC FEED
+            </span>
+            <h3 className="text-lg font-extrabold text-slate-900">Live Visitor Telemetry Feed</h3>
+          </div>
+          <Activity className="h-5 w-5 text-sky-600 animate-pulse" />
+        </div>
+
+        {recentActivity.length === 0 ? (
+          <div className="py-12 text-center text-slate-400 space-y-2">
+            <Activity className="h-8 w-8 mx-auto text-slate-300" />
+            <p className="text-xs font-medium">No live visitor activity recorded yet.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="bg-slate-900 text-white text-[10px] font-mono uppercase tracking-wider border-b border-slate-800">
+                  <th className="py-3 px-4">Timestamp</th>
+                  <th className="py-3 px-4">Location</th>
+                  <th className="py-3 px-4">Device & OS</th>
+                  <th className="py-3 px-4">Browser</th>
+                  <th className="py-3 px-4">Page Visited</th>
+                  <th className="py-3 px-4">Duration Spent</th>
+                  <th className="py-3 px-4">Visit Count</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 font-medium">
+                {recentActivity.map((a) => (
+                  <tr key={a.id} className="hover:bg-slate-50 transition">
+                    <td className="py-3 px-4 font-mono text-[11px] text-slate-500">
+                      {new Date(a.createdAt).toLocaleString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', day: '2-digit', month: 'short' })}
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className="font-extrabold text-slate-900 flex items-center space-x-1">
+                        <MapPin className="h-3.5 w-3.5 text-emerald-600" />
+                        <span>{a.location}</span>
+                      </span>
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="font-bold text-slate-800">{a.deviceType} ({a.deviceOs})</div>
+                    </td>
+                    <td className="py-3 px-4 text-slate-600">
+                      {a.browser}
+                    </td>
+                    <td className="py-3 px-4 font-mono text-sky-800 font-bold">
+                      {a.pagePath}
+                    </td>
+                    <td className="py-3 px-4 font-mono font-bold text-emerald-700">
+                      {a.durationSeconds}s
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${a.visitCount > 1 ? 'bg-purple-100 text-purple-800' : 'bg-sky-100 text-sky-800'}`}>
+                        {a.visitCount > 1 ? `${a.visitCount}x Return` : '1st Visit'}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

@@ -11,6 +11,7 @@ import AdminGalleryManagement from '@/components/AdminGalleryManagement';
 import AdminBackupManagement from '@/components/AdminBackupManagement';
 import AdminFeeManagement from '@/components/AdminFeeManagement';
 import AdminOnlinePayments from '@/components/AdminOnlinePayments';
+import AdminAnalyticsManagement from '@/components/AdminAnalyticsManagement';
 import { 
   LayoutDashboard,
   Users, 
@@ -27,7 +28,8 @@ import {
   ShieldCheck,
   School,
   Database,
-  Trash2
+  Trash2,
+  Activity
 } from 'lucide-react';
 import Link from 'next/link';
 import { formatDateSafe } from '@/lib/dateUtils';
@@ -123,6 +125,7 @@ export default function AdminDashboardConsole({
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+    { id: 'analytics', label: '📈 Traffic & Analytics', icon: Activity },
     { id: 'faculty', label: 'Faculty & Teachers', icon: UserCheck, count: teachersCount },
     { id: 'students', label: 'Student Roster', icon: Users, count: studentsCount },
     { id: 'enroll', label: 'Offline Enrollment', icon: UserPlus },
@@ -500,6 +503,13 @@ export default function AdminDashboardConsole({
               ))}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* VIEW: WEBSITE TRAFFIC & VISITOR ANALYTICS */}
+      {activeTab === 'analytics' && (
+        <div className="animate-fadeIn">
+          <AdminAnalyticsManagement />
         </div>
       )}
 

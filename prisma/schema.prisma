@@ -228,3 +228,21 @@ model FeePayment {
   paymentStatus   String   @default("PAID")
   createdAt       DateTime @default(now())
 }
+
+model WebsiteAnalytics {
+  id              String   @id @default(uuid())
+  sessionId       String   // Persistent visitor session UUID
+  visitorIp       String?  // Anonymized IP
+  locationCity    String   @default("Imphal") // e.g. "Imphal", "Guwahati", "Delhi"
+  locationRegion  String   @default("Manipur") // e.g. "Manipur", "Assam"
+  locationCountry String   @default("India")
+  deviceType      String   @default("Mobile") // "Mobile", "Desktop", "Tablet"
+  deviceOs        String   @default("iOS") // "iOS", "Android", "macOS", "Windows"
+  browser         String   @default("Safari") // "Chrome", "Safari", "Firefox", "Edge"
+  pagePath        String   // e.g. "/", "/pay-fee", "/admission"
+  pageTitle       String?  // e.g. "Home", "Fee Counter"
+  durationSeconds Int      @default(15) // Duration spent in seconds
+  visitCount      Int      @default(1) // Return visit count
+  isNewVisitor    Boolean  @default(true)
+  createdAt       DateTime @default(now())
+}

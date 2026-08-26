@@ -25,17 +25,13 @@ import {
   FileSpreadsheet,
   LayoutDashboard,
   Database,
-  DollarSign
+  DollarSign,
+  Activity
 } from 'lucide-react';
 import SignOutButton from './SignOutButton';
 
 interface PortalMobileHeaderProps {
-  session: {
-    userId: string;
-    email: string;
-    name: string;
-    role: string;
-  };
+  session: any;
 }
 
 export default function PortalMobileHeader({ session }: PortalMobileHeaderProps) {
@@ -62,6 +58,17 @@ export default function PortalMobileHeader({ session }: PortalMobileHeaderProps)
               <div className="flex items-center space-x-2.5">
                 <LayoutDashboard className="h-4 w-4 text-indigo-600" />
                 <span>Overview & Summary</span>
+              </div>
+              <ChevronRight className="h-3.5 w-3.5 text-gray-400" />
+            </Link>
+            <Link
+              href="/portal/admin?tab=analytics"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center justify-between p-2.5 rounded-xl hover:bg-gray-50 text-gray-700 text-xs font-semibold"
+            >
+              <div className="flex items-center space-x-2.5">
+                <Activity className="h-4 w-4 text-emerald-600" />
+                <span>📈 Traffic & Visitor Analytics</span>
               </div>
               <ChevronRight className="h-3.5 w-3.5 text-gray-400" />
             </Link>

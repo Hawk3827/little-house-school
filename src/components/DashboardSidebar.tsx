@@ -23,15 +23,12 @@ import {
   Award,
   ChevronRight,
   Database,
-  DollarSign
+  DollarSign,
+  Activity
 } from 'lucide-react';
 
 interface DashboardSidebarProps {
-  session: {
-    name: string;
-    email: string;
-    role: string;
-  };
+  session: any;
 }
 
 export default function DashboardSidebar({ session }: DashboardSidebarProps) {
@@ -39,7 +36,7 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
   const searchParams = useSearchParams();
   const currentTab = searchParams.get('tab') || 'overview';
 
-  const role = session.role;
+  const role = (session as any).role || (session as any).user?.role || 'STUDENT';
 
   // Navigation schema based on user role
   const getNavSections = () => {
@@ -53,6 +50,12 @@ export default function DashboardSidebar({ session }: DashboardSidebarProps) {
               href: '/portal/admin?tab=overview',
               isActive: pathname === '/portal/admin' && (currentTab === 'overview' || !searchParams.get('tab')),
               icon: LayoutDashboard,
+            },
+            {
+              name: 'Traffic & Visitor Analytics',
+              href: '/portal/admin?tab=analytics',
+              isActive: pathname === '/portal/admin' && currentTab === 'analytics',
+              icon: Activity,
             },
             {
               name: 'Faculty & Teachers',
