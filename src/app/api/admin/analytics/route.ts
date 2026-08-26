@@ -17,34 +17,43 @@ export async function GET(request: Request) {
     const monthParam = searchParams.get('month'); // Format "YYYY-MM"
     const presetParam = searchParams.get('preset') || 'ALL_TIME';
 
-    let dateWhereFilter: any = {};
+    // Calculate date boundaries in Indian Standard Time (IST / UTC+5:30)
     const now = new Date();
+    const istOffsetMs = 5.5 * 60 * 60 * 1000;
+    const istNow = new Date(now.getTime() + istOffsetMs);
+
+    const year = istNow.getUTCFullYear();
+    const month = istNow.getUTCMonth();
+    const date = istNow.getUTCDate();
+
+    const todayStart = new Date(Date.UTC(year, month, date, 0, 0, 0, 0) - istOffsetMs);
+    const yestStart = new Date(Date.UTC(year, month, date - 1, 0, 0, 0, 0) - istOffsetMs);
+    const yestEnd = todayStart;
+    const monthStart = new Date(Date.UTC(year, month, 1, 0, 0, 0, 0) - istOffsetMs);
+    const lastMonthStart = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0, 0) - istOffsetMs);
+    const lastMonthEnd = monthStart;
+
+    let dateWhereFilter: any = {};
 
     if (presetParam === 'TODAY') {
-      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       dateWhereFilter = { gte: todayStart };
     } else if (presetParam === 'YESTERDAY') {
-      const yestStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
-      const yestEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       dateWhereFilter = { gte: yestStart, lt: yestEnd };
     } else if (presetParam === 'THIS_MONTH') {
-      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
       dateWhereFilter = { gte: monthStart };
     } else if (presetParam === 'LAST_MONTH') {
-      const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 1);
       dateWhereFilter = { gte: lastMonthStart, lt: lastMonthEnd };
     } else if (monthParam) {
       const [yearStr, mStr] = monthParam.split('-');
-      const year = Number(yearStr) || now.getFullYear();
-      const monthIdx = (Number(mStr) || 1) - 1;
-      const mStart = new Date(year, monthIdx, 1);
-      const mEnd = new Date(year, monthIdx + 1, 1);
+      const y = Number(yearStr) || year;
+      const mIdx = (Number(mStr) || 1) - 1;
+      const mStart = new Date(Date.UTC(y, mIdx, 1, 0, 0, 0, 0) - istOffsetMs);
+      const mEnd = new Date(Date.UTC(y, mIdx + 1, 1, 0, 0, 0, 0) - istOffsetMs);
       dateWhereFilter = { gte: mStart, lt: mEnd };
     } else if (startDateParam || endDateParam) {
       dateWhereFilter = {};
-      if (startDateParam) dateWhereFilter.gte = new Date(`${startDateParam}T00:00:00.000Z`);
-      if (endDateParam) dateWhereFilter.lte = new Date(`${endDateParam}T23:59:59.999Z`);
+      if (startDateParam) dateWhereFilter.gte = new Date(`${startDateParam}T00:00:00.000+05:30`);
+      if (endDateParam) dateWhereFilter.lte = new Date(`${endDateParam}T23:59:59.999+05:30`);
     }
 
     const whereClause = Object.keys(dateWhereFilter).length > 0 ? { createdAt: dateWhereFilter } : {};
@@ -55,7 +64,6 @@ export async function GET(request: Request) {
       take: 5000,
     });
 
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const totalPageviews = allAnalytics.length;
 
     // Group by Physical Device Fingerprint (visitorIp + deviceOs + browser + locationCity) OR sessionId
