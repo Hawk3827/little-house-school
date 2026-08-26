@@ -55,7 +55,25 @@ export default function AnalyticsTracker() {
     const startTime = Date.now();
     startTimeRef.current = startTime;
 
-    // Resolve exact client device location via client-side WAN IP lookup
+    // Reverse Geocode Lat/Lon to exact suburb/locality using OpenStreetMap Nominatim API
+    const reverseGeocodeLatLon = async (lat: number, lon: number): Promise<ClientGeoLocation | null> => {
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+        if (res.ok) {
+          const data = await res.json();
+          const addr = data.address || {};
+          const locality = addr.suburb || addr.neighbourhood || addr.village || addr.town || addr.city_district || addr.county || '';
+          const cityName = addr.city || addr.town || addr.state_district || addr.county || 'Imphal';
+          const fullCity = locality && locality !== cityName ? `${locality}, ${cityName}` : cityName;
+          const region = addr.state || 'Manipur';
+          const country = addr.country || 'India';
+          return { city: fullCity, region, country };
+        }
+      } catch (e) {}
+      return null;
+    };
+
+    // Hyper-Precise Client Location Resolver Pipeline
     const fetchClientDeviceLocation = async (): Promise<ClientGeoLocation | null> => {
       // Return cached location if already fetched in this session
       const cached = sessionStorage.getItem('lh_client_geo');
@@ -65,14 +83,43 @@ export default function AnalyticsTracker() {
         } catch (e) {}
       }
 
-      // Try Provider 1: ip-api.com
+      // Tier 1: Try HTML5 Browser GPS / Wi-Fi Triangulation (Hyper Precision)
+      if (typeof window !== 'undefined' && 'geolocation' in navigator) {
+        try {
+          const gpsPromise = new Promise<GeolocationPosition | null>((resolve) => {
+            navigator.geolocation.getCurrentPosition(
+              (pos) => resolve(pos),
+              () => resolve(null),
+              { timeout: 2500, maximumAge: 300000, enableHighAccuracy: true }
+            );
+          });
+          const position = await gpsPromise;
+          if (position && position.coords) {
+            const gpsLoc = await reverseGeocodeLatLon(position.coords.latitude, position.coords.longitude);
+            if (gpsLoc) {
+              sessionStorage.setItem('lh_client_geo', JSON.stringify(gpsLoc));
+              return gpsLoc;
+            }
+          }
+        } catch (eGps) {}
+      }
+
+      // Tier 2: Try ip-api.com with Lat/Lon Reverse Mapping
       try {
-        const res1 = await fetch('https://ip-api.com/json/');
+        const res1 = await fetch('https://ip-api.com/json/?fields=status,country,regionName,city,district,zip,lat,lon');
         if (res1.ok) {
           const data1 = await res1.json();
+          if (data1.lat && data1.lon) {
+            const revLoc = await reverseGeocodeLatLon(data1.lat, data1.lon);
+            if (revLoc) {
+              sessionStorage.setItem('lh_client_geo', JSON.stringify(revLoc));
+              return revLoc;
+            }
+          }
           if (data1.city) {
+            const districtStr = data1.district ? `${data1.district}, ` : '';
             const loc1 = {
-              city: data1.city,
+              city: `${districtStr}${data1.city}`,
               region: data1.regionName || 'Manipur',
               country: data1.country || 'India',
             };
@@ -82,16 +129,17 @@ export default function AnalyticsTracker() {
         }
       } catch (e1) {}
 
-      // Try Provider 2: ipapi.co
+      // Tier 3: Try ipwho.is provider
       try {
-        const res2 = await fetch('https://ipapi.co/json/');
+        const res2 = await fetch('https://ipwho.is/');
         if (res2.ok) {
           const data2 = await res2.json();
-          if (data2.city) {
+          if (data2.success) {
+            const cityStr = data2.city || 'Imphal';
             const loc2 = {
-              city: data2.city,
+              city: cityStr,
               region: data2.region || 'Manipur',
-              country: data2.country_name || 'India',
+              country: data2.country || 'India',
             };
             sessionStorage.setItem('lh_client_geo', JSON.stringify(loc2));
             return loc2;
