@@ -215,42 +215,38 @@ export default function AnalyticsTracker() {
         return 'Android Smartphone';
       }
 
-      // 2. Apple iPhone Specific Model Detection (Exact Single Model Name)
+      // 2. Apple iPhone Specific Model Detection (Instagram Login History Style: iPhone 15, iPhone 17 Pro Max)
       if (/iphone/i.test(ua)) {
         const portraitW = Math.min(w, h);
         const portraitH = Math.max(w, h);
 
-        if (portraitW === 440 && portraitH === 956) return 'Apple iPhone 16 Pro Max';
-        if (portraitW === 402 && portraitH === 874) return 'Apple iPhone 16 Pro';
-        if (portraitW === 430 && portraitH === 932) return 'Apple iPhone 15 Pro Max';
-        if (portraitW === 393 && portraitH === 852) return 'Apple iPhone 15 Pro';
-        if (portraitW === 390 && portraitH === 844) return 'Apple iPhone 14 Pro';
-        if (portraitW === 428 && portraitH === 926) return 'Apple iPhone 15 Plus';
-        if (portraitW === 414 && portraitH === 896 && dpr >= 3) return 'Apple iPhone 11 Pro Max';
-        if (portraitW === 414 && portraitH === 896 && dpr < 3) return 'Apple iPhone 11';
-        if (portraitW === 375 && portraitH === 812) return 'Apple iPhone 11 Pro';
-        if (portraitW === 375 && portraitH === 667) return 'Apple iPhone SE';
-        if (portraitW === 414 && portraitH === 736) return 'Apple iPhone 8 Plus';
+        if (portraitW === 440 && portraitH === 956) return 'iPhone 17 Pro Max';
+        if (portraitW === 402 && portraitH === 874) return 'iPhone 17 Pro';
+        if (portraitW === 430 && portraitH === 932) return 'iPhone 15 Pro Max';
+        if (portraitW === 393 && portraitH === 852) return 'iPhone 15 Pro';
+        if (portraitW === 390 && portraitH === 844) return 'iPhone 15';
+        if (portraitW === 428 && portraitH === 926) return 'iPhone 15 Plus';
+        if (portraitW === 414 && portraitH === 896 && dpr >= 3) return 'iPhone 11 Pro Max';
+        if (portraitW === 414 && portraitH === 896 && dpr < 3) return 'iPhone 11';
+        if (portraitW === 375 && portraitH === 812) return 'iPhone 11 Pro';
+        if (portraitW === 375 && portraitH === 667) return 'iPhone SE';
+        if (portraitW === 414 && portraitH === 736) return 'iPhone 8 Plus';
 
-        return 'Apple iPhone';
+        return 'iPhone 15';
       }
 
       // 3. Apple iPad Model Matrix
       if (/ipad/i.test(ua) || (touch > 1 && /macintosh/i.test(ua))) {
         const portraitW = Math.min(w, h);
-        if (portraitW >= 1024) return 'Apple iPad Pro 12.9"';
-        if (portraitW >= 834) return 'Apple iPad Pro 11"';
-        if (portraitW >= 768) return 'Apple iPad mini';
-        return 'Apple iPad';
+        if (portraitW >= 1024) return 'iPad Pro';
+        if (portraitW >= 834) return 'iPad Air';
+        if (portraitW >= 768) return 'iPad mini';
+        return 'iPad';
       }
 
       // 4. Apple Mac Desktop / Laptop Matrix
       if (/macintosh|mac os x/i.test(ua)) {
-        if (gpu.includes('Apple M3') || gpu.includes('Apple M2') || gpu.includes('Apple M1') || gpu.includes('Apple M4')) {
-          const mChip = gpu.match(/M\d(\s\w+)?/)?.[0] || 'Silicon';
-          return `Apple MacBook Pro (${mChip})`;
-        }
-        return 'Apple MacBook Pro';
+        return 'MacBook Pro';
       }
 
       // 5. Windows PC
