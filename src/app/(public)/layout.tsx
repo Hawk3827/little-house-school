@@ -57,6 +57,9 @@ export default function PublicLayout({
                 <Link href="/about" className="text-slate-200 hover:text-white transition">About Our Legacy</Link>
               </li>
               <li>
+                <Link href="/annual-program" className="text-slate-200 hover:text-white transition">Annual Program & Calendar</Link>
+              </li>
+              <li>
                 <Link href="/gallery" className="text-slate-200 hover:text-white transition">School Gallery & Videos</Link>
               </li>
               <li>

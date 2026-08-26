@@ -126,6 +126,18 @@ export async function GET(request: Request) {
         ]
       },
       {
+        title: 'Annual Program & Academic Calendar 2026',
+        desc: 'View academic milestones, official holiday list 2026, and FA II exam timetables.',
+        category: 'Academics',
+        iconType: 'calendar',
+        actionLabel: 'View Annual Program',
+        href: '/annual-program',
+        keywords: [
+          'annual program', 'program', 'academic milestones', 'milestones', 'holiday list', 
+          'holidays', 'calendar', 'exam timetable', 'fa ii', 'exam schedule', 'routine', 'vacation'
+        ]
+      },
+      {
         title: 'School Office Contact & Inquiry Desk',
         desc: 'Contact our office via phone at +91 98765 43210 or email at admin@littlehouse.edu.',
         category: 'Contact',

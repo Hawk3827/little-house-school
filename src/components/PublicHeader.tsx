@@ -79,6 +79,7 @@ export default function PublicHeader({ session: initialSession = null }: PublicH
   const navLinks = [
     { name: 'HOME', href: '/' },
     { name: 'ABOUT US', href: '/about' },
+    { name: 'ANNUAL PROGRAM', href: '/annual-program' },
     { name: 'ADMISSIONS', href: '/admission' },
     { name: 'GALLERY', href: '/gallery' },
     { name: 'CONTACT', href: '/contact' },
