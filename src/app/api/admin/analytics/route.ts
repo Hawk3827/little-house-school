@@ -210,7 +210,7 @@ export async function GET(request: Request) {
       // Determine Instagram-style specific device hardware model name (Identical to Instagram Login Activity)
       let deviceName = 'Desktop PC';
       if (a.deviceOs === 'iOS') {
-        deviceName = a.deviceType === 'Tablet' ? 'iPad Pro' : 'iPhone 15';
+        deviceName = a.deviceType === 'Tablet' ? 'iPad Pro' : 'iPhone 17 Pro Max';
       } else if (a.deviceOs === 'macOS') {
         deviceName = 'MacBook Pro';
       } else if (a.deviceOs === 'Android') {

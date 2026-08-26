@@ -232,24 +232,35 @@ export default function AnalyticsTracker() {
         return 'Android Smartphone';
       }
 
-      // 3. Apple iPhone Specific Model Detection (Screen Matrix + GPU)
+      // 3. Apple iPhone Specific Model Detection (Flexible Range Matrix for iPhone 17 Pro Max, 17 Pro, 15 Pro Max, etc.)
       if (/iphone/i.test(ua)) {
         const portraitW = Math.min(w, h);
         const portraitH = Math.max(w, h);
 
-        if (portraitW === 440 && portraitH === 956) return 'iPhone 17 Pro Max';
-        if (portraitW === 402 && portraitH === 874) return 'iPhone 17 Pro';
-        if (portraitW === 430 && portraitH === 932) return 'iPhone 15 Pro Max';
-        if (portraitW === 393 && portraitH === 852) return 'iPhone 15 Pro';
-        if (portraitW === 390 && portraitH === 844) return 'iPhone 15';
-        if (portraitW === 428 && portraitH === 926) return 'iPhone 15 Plus';
-        if (portraitW === 414 && portraitH === 896 && dpr >= 3) return 'iPhone 11 Pro Max';
-        if (portraitW === 414 && portraitH === 896 && dpr < 3) return 'iPhone 11';
-        if (portraitW === 375 && portraitH === 812) return 'iPhone 11 Pro';
-        if (portraitW === 375 && portraitH === 667) return 'iPhone SE';
-        if (portraitW === 414 && portraitH === 736) return 'iPhone 8 Plus';
+        // Flagship Large Screen Range (iPhone 16 Pro Max / iPhone 17 Pro Max)
+        if (portraitW >= 420 || portraitH >= 920 || gpu.includes('A18') || gpu.includes('A17')) {
+          return 'iPhone 17 Pro Max';
+        }
+        // Flagship Pro Screen Range (iPhone 16 Pro / iPhone 17 Pro)
+        if (portraitW >= 400 || portraitH >= 870) {
+          return 'iPhone 17 Pro';
+        }
+        // iPhone 15 Pro / 14 Pro Range
+        if (portraitW >= 390 || portraitH >= 840) {
+          return 'iPhone 15 Pro';
+        }
+        // Standard iPhone Range
+        if (portraitW >= 375 && dpr >= 3) {
+          return 'iPhone 15';
+        }
+        if (portraitW >= 375 && dpr < 3) {
+          return 'iPhone 11';
+        }
+        if (portraitW < 375) {
+          return 'iPhone SE';
+        }
 
-        return 'iPhone 15';
+        return 'iPhone 17 Pro Max';
       }
 
       // 4. Apple iPad Model Matrix

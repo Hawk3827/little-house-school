@@ -13,7 +13,7 @@ function parseDeviceDetails(ua: string, screenWidth: number = 1200) {
 
   // Universal Device Name Extraction Algorithm (Supports ALL devices globally)
   if (/iphone/i.test(userAgent)) {
-    deviceName = 'iPhone 15';
+    deviceName = 'iPhone 17 Pro Max';
   } else if (/ipad/i.test(userAgent)) {
     deviceName = 'iPad Pro';
   } else if (/macintosh|mac os x/i.test(userAgent)) {
