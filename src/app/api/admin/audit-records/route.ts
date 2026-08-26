@@ -4,16 +4,14 @@ import prisma from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
-// GET: Fetch Admin Audit & Change Logs (EXCLUSIVE to Master Admin hawk3827@admin)
+// GET: Fetch Admin Audit & Change Logs
 export async function GET(request: Request) {
   try {
     const session = await getSession();
-    const userEmail = (session?.email || (session as any)?.user?.email || '').toLowerCase();
-
-    if (!session || session.role !== 'ADMIN' || !userEmail.includes('hawk3827')) {
+    if (!session || session.role !== 'ADMIN') {
       return NextResponse.json(
-        { error: 'Forbidden: Admin Audit & Change Log is strictly restricted to Master Administrator hawk3827@admin.' },
-        { status: 403 }
+        { error: 'Unauthorized: Admin portal access required.' },
+        { status: 401 }
       );
     }
 

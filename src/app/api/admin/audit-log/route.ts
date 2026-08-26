@@ -4,16 +4,14 @@ import prisma from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
-// GET: Fetch Admin Audit & Change Logs (EXCLUSIVE to Master Admin hawk3827@admin)
+// GET: Fetch Admin Audit & Change Logs
 export async function GET(request: Request) {
   try {
     const session = await getSession();
-    const userEmail = (session?.email || (session as any)?.user?.email || '').toLowerCase();
-
-    if (!session || session.role !== 'ADMIN' || !userEmail.includes('hawk3827')) {
+    if (!session || session.role !== 'ADMIN') {
       return NextResponse.json(
-        { error: 'Forbidden: Admin Audit & Change Log is strictly restricted to Master Administrator hawk3827@admin.' },
-        { status: 403 }
+        { error: 'Unauthorized: Admin portal access required.' },
+        { status: 401 }
       );
     }
 
@@ -38,6 +36,7 @@ export async function GET(request: Request) {
       const recorder = fp.recordedBy || 'Admin Office';
       let adminEmail = 'admin@school.com';
       if (recorder.toLowerCase().includes('netrajit')) adminEmail = 'netrajit@admin';
+      if (recorder.toLowerCase().includes('hawk')) adminEmail = 'hawk3827@admin';
       if (recorder.toLowerCase().includes('ranjana')) adminEmail = 'admin@school.com';
 
       return {
@@ -47,7 +46,7 @@ export async function GET(request: Request) {
         actionType: 'PAYMENT',
         category: 'FEE_PAYMENT',
         targetName: `${fp.studentName} (${fp.studentClass})`,
-        description: `Issued Fee Receipt #${fp.receiptNo} of ₹${fp.totalAmount.toLocaleString('en-IN')} for ${fp.paidMonths} (${fp.paymentMode})`,
+        description: `Issued & Updated Fee Receipt #${fp.receiptNo} of ₹${fp.totalAmount.toLocaleString('en-IN')} for ${fp.paidMonths} (${fp.paymentMode})`,
         createdAt: fp.createdAt.toISOString(),
       };
     });
@@ -157,10 +156,10 @@ export async function GET(request: Request) {
       ...galleryAuditItems,
     ];
 
-    // Remove potential duplicate entries by description key
+    // Deduplicate by unique record ID
     const seen = new Set();
     allLogs = allLogs.filter((l) => {
-      const key = `${l.category}_${l.description}`;
+      const key = l.id;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
