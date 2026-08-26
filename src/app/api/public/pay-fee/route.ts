@@ -154,6 +154,19 @@ export async function POST(request: Request) {
       },
     });
 
+    try {
+      await prisma.adminAuditLog.create({
+        data: {
+          adminEmail: recordedBy.toLowerCase().includes('netrajit') ? 'netrajit@admin' : recordedBy.toLowerCase().includes('hawk') ? 'hawk3827@admin' : 'admin@school.com',
+          adminName: recordedBy,
+          actionType: 'PAYMENT',
+          category: 'FEE_PAYMENT',
+          targetName: `Student: ${studentName || 'Student'} (${admissionNo.trim()})`,
+          description: `Updated fee record & issued receipt #${receiptNo} of ₹${Number(totalAmount).toLocaleString('en-IN')} for ${Array.isArray(paidMonths) ? paidMonths.join(', ') : paidMonths} (${paymentMode || 'OFFLINE'})`,
+        },
+      });
+    } catch (e) {}
+
     return NextResponse.json({
       success: true,
       message: `Monthly fee payment recorded successfully by ${recordedBy}!`,
