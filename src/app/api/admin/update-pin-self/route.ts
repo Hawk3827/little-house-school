@@ -45,20 +45,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Incorrect current password. Verification failed.' }, { status: 400 });
     }
 
-    // 🔒 STRICT PIN UNIQUENESS CHECK across all Admin and Staff accounts
+    // 🔒 ZERO-KNOWLEDGE PIN CONFLICT CHECK (Does not leak who owns the PIN)
     const existingPinOwner = await prisma.user.findFirst({
       where: {
         securityPin: cleanPin,
         id: { not: session.userId },
       },
-      include: { profile: true },
     });
 
     if (existingPinOwner) {
-      const ownerName = existingPinOwner.profile?.name || existingPinOwner.email;
+      // Return privacy-preserving zero-knowledge error message (never reveal owner identity or PIN existence details)
       return NextResponse.json(
         {
-          error: `⚠️ PIN Conflict: Security PIN "${cleanPin}" is already assigned to ${ownerName}. For fee accountability, each admin/staff member must have a unique PIN. Please choose a different PIN.`
+          error: `⚠️ PIN Unavailable: This 4-digit PIN cannot be used. Please choose a different 4-digit PIN.`
         },
         { status: 409 }
       );

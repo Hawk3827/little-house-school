@@ -27,14 +27,13 @@ export async function POST(request: Request) {
         securityPin: cleanPin,
         id: { not: targetUserId },
       },
-      include: { profile: true },
     });
 
     if (existingPinOwner) {
-      const ownerName = existingPinOwner.profile?.name || existingPinOwner.email;
+      // Zero-knowledge privacy error message (does not reveal owner name)
       return NextResponse.json(
         {
-          error: `⚠️ PIN Conflict: Security PIN "${cleanPin}" is already assigned to ${ownerName}. Each staff/admin member must have a unique PIN for accountability.`
+          error: `⚠️ PIN Unavailable: This 4-digit PIN cannot be assigned. Please choose a different PIN.`
         },
         { status: 409 }
       );
