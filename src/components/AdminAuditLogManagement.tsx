@@ -43,6 +43,7 @@ export default function AdminAuditLogManagement() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [limit, setLimit] = useState('100');
+  const [sortOrder, setSortOrder] = useState<'NEWEST' | 'OLDEST'>('NEWEST');
 
   // Purge & Delete Modal State
   const [purgeModalOpen, setPurgeModalOpen] = useState(false);
@@ -117,17 +118,27 @@ export default function AdminAuditLogManagement() {
     );
   }
 
-  // Filter logs by search query
-  const filteredLogs = logs.filter((item) => {
-    const q = searchQuery.toLowerCase();
-    return (
-      item.adminName.toLowerCase().includes(q) ||
-      item.adminEmail.toLowerCase().includes(q) ||
-      item.description.toLowerCase().includes(q) ||
-      (item.targetName && item.targetName.toLowerCase().includes(q)) ||
-      item.category.toLowerCase().includes(q)
-    );
-  });
+  // Filter & Sort logs by search query and timestamp
+  const filteredLogs = logs
+    .filter((item) => {
+      const q = searchQuery.toLowerCase();
+      if (selectedCategory === 'DELETIONS') {
+        const isDel = item.actionType === 'DELETE' || item.description.toLowerCase().includes('deleted');
+        if (!isDel) return false;
+      }
+      return (
+        item.adminName.toLowerCase().includes(q) ||
+        item.adminEmail.toLowerCase().includes(q) ||
+        item.description.toLowerCase().includes(q) ||
+        (item.targetName && item.targetName.toLowerCase().includes(q)) ||
+        item.category.toLowerCase().includes(q)
+      );
+    })
+    .sort((a, b) => {
+      const timeA = new Date(a.createdAt).getTime() || 0;
+      const timeB = new Date(b.createdAt).getTime() || 0;
+      return sortOrder === 'NEWEST' ? timeB - timeA : timeA - timeB;
+    });
 
   // Export to CSV
   const handleExportCSV = () => {
@@ -245,10 +256,11 @@ export default function AdminAuditLogManagement() {
           />
         </div>
 
-        {/* Category Pills */}
+        {/* Category Pills & Sort Toggle */}
         <div className="flex flex-wrap items-center gap-1.5 w-full md:w-auto">
           {[
             { id: 'ALL', label: 'All Changes' },
+            { id: 'DELETIONS', label: '🗑️ Deletions Only' },
             { id: 'SECURITY', label: '🔐 Security' },
             { id: 'FEE_PAYMENT', label: '💰 Fee Records' },
             { id: 'STUDENT', label: '🎓 Students' },
@@ -262,13 +274,25 @@ export default function AdminAuditLogManagement() {
               onClick={() => setSelectedCategory(cat.id)}
               className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition ${
                 selectedCategory === cat.id
-                  ? 'bg-indigo-600 text-white shadow-sm'
+                  ? cat.id === 'DELETIONS'
+                    ? 'bg-red-600 text-white shadow-sm font-black'
+                    : 'bg-indigo-600 text-white shadow-sm'
                   : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               }`}
             >
               {cat.label}
             </button>
           ))}
+
+          <button
+            type="button"
+            onClick={() => setSortOrder(sortOrder === 'NEWEST' ? 'OLDEST' : 'NEWEST')}
+            className="px-3 py-1.5 bg-slate-900 text-white hover:bg-slate-800 rounded-xl text-xs font-mono font-bold flex items-center space-x-1 transition shadow-sm ml-1"
+            title="Toggle Sort Order"
+          >
+            <ArrowUpDown className="h-3.5 w-3.5 text-emerald-400" />
+            <span>{sortOrder === 'NEWEST' ? '⬇️ Newest First' : '⬆️ Oldest First'}</span>
+          </button>
         </div>
       </div>
 
