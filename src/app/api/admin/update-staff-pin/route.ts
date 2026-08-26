@@ -13,20 +13,41 @@ export async function POST(request: Request) {
 
     const { userId, newPin } = await request.json();
 
-    if (!newPin || String(newPin).trim().length < 4) {
-      return NextResponse.json({ error: 'Security PIN must be at least 4 digits.' }, { status: 400 });
+    const cleanPin = String(newPin || '').trim();
+
+    if (!cleanPin || !/^\d{4,6}$/.test(cleanPin)) {
+      return NextResponse.json({ error: 'Security PIN must be a 4-to-6 digit numeric code (e.g. 7951).' }, { status: 400 });
     }
 
     const targetUserId = userId || session.userId;
 
+    // Check PIN uniqueness
+    const existingPinOwner = await prisma.user.findFirst({
+      where: {
+        securityPin: cleanPin,
+        id: { not: targetUserId },
+      },
+      include: { profile: true },
+    });
+
+    if (existingPinOwner) {
+      const ownerName = existingPinOwner.profile?.name || existingPinOwner.email;
+      return NextResponse.json(
+        {
+          error: `⚠️ PIN Conflict: Security PIN "${cleanPin}" is already assigned to ${ownerName}. Each staff/admin member must have a unique PIN for accountability.`
+        },
+        { status: 409 }
+      );
+    }
+
     const updatedUser = await prisma.user.update({
       where: { id: targetUserId },
-      data: { securityPin: String(newPin).trim() },
+      data: { securityPin: cleanPin },
     });
 
     return NextResponse.json({
       success: true,
-      message: `Security PIN updated successfully for ${updatedUser.email}!`,
+      message: `Security PIN updated to "${cleanPin}" successfully for ${updatedUser.email}!`,
     });
   } catch (error: any) {
     console.error('Error updating staff PIN:', error);
