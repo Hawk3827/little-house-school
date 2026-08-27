@@ -126,6 +126,29 @@ export async function createDedicatedFeeBackup(): Promise<DedicatedFeeBackupResu
   const timestamp = new Date().toISOString();
   const totalAmountCollected = feePayments.reduce((sum, f) => sum + f.totalAmount, 0);
 
+  const now = new Date();
+  const formatter = new Intl.DateTimeFormat('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    year: 'numeric',
+    month: 'short',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true,
+  });
+  const parts = formatter.formatToParts(now);
+  const map: Record<string, string> = {};
+  parts.forEach((p) => (map[p.type] = p.value));
+
+  const day = map.day || '01';
+  const month = map.month || 'Jan';
+  const year = map.year || '2026';
+  const hour = map.hour || '12';
+  const minute = map.minute || '00';
+  const second = map.second || '00';
+  const dayPeriod = (map.dayPeriod || 'AM').toUpperCase();
+
   // 1. JSON Dedicated Fee Backup
   const feeBackupJsonData = {
     version: '2.0-FEES-DEDICATED',
@@ -139,7 +162,7 @@ export async function createDedicatedFeeBackup(): Promise<DedicatedFeeBackupResu
     feePayments,
   };
 
-  const filenameJson = 'LHS_Fee_Payments_Backup_Latest.json';
+  const filenameJson = `LittleHouse_Fee_Ledger_${day}-${month}-${year}_${hour}-${minute}-${second}-${dayPeriod}.json`;
   const filepathJson = path.join(BACKUP_DIR, filenameJson);
   const jsonContent = JSON.stringify(feeBackupJsonData, null, 2);
 
@@ -158,7 +181,7 @@ export async function createDedicatedFeeBackup(): Promise<DedicatedFeeBackupResu
     `"${f.receiptNo}","${f.studentName}","${f.admissionNo}","${f.studentClass}","${f.parentPhone || ''}","${f.paidMonths}",${f.tuitionFee},${f.transportFee},${f.totalAmount},"${f.paymentMode}","${f.paymentRef}","${f.paymentStatus}","${new Date(f.createdAt).toISOString()}"`
   ).join('\n');
 
-  const filenameCsv = 'LHS_Fee_Payments_Backup_Latest.csv';
+  const filenameCsv = `LittleHouse_Fee_Ledger_${day}-${month}-${year}_${hour}-${minute}-${second}-${dayPeriod}.csv`;
   const filepathCsv = path.join(BACKUP_DIR, filenameCsv);
   const csvContent = csvHeader + csvRows;
 
