@@ -277,8 +277,32 @@ export async function createDatabaseSnapshot(): Promise<SnapshotMeta> {
   };
 
   const timestamp = new Date().toISOString();
-  const dateStr = timestamp.replace(/[:.]/g, '-');
-  const filename = `lhs-backup-${dateStr}.json`;
+  
+  // Format clean date and time string in IST (Asia/Kolkata) for human readability in Google Drive
+  const now = new Date();
+  const formatter = new Intl.DateTimeFormat('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    year: 'numeric',
+    month: 'short',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true,
+  });
+  const parts = formatter.formatToParts(now);
+  const map: Record<string, string> = {};
+  parts.forEach((p) => (map[p.type] = p.value));
+
+  const day = map.day || '01';
+  const month = map.month || 'Jan';
+  const year = map.year || '2026';
+  const hour = map.hour || '12';
+  const minute = map.minute || '00';
+  const second = map.second || '00';
+  const dayPeriod = (map.dayPeriod || 'AM').toUpperCase();
+
+  const filename = `LittleHouse_Backup_${day}-${month}-${year}_${hour}-${minute}-${second}-${dayPeriod}.json`;
   const filepath = path.join(BACKUP_DIR, filename);
 
   // Generate dedicated fee backup automatically
@@ -326,7 +350,7 @@ export async function createDatabaseSnapshot(): Promise<SnapshotMeta> {
   try {
     const existingFiles = await readdir(BACKUP_DIR);
     const oldSnapshots = existingFiles.filter(
-      (f) => f.startsWith('lhs-backup-') && f.endsWith('.json') && f !== filename
+      (f) => (f.startsWith('LittleHouse_Backup_') || f.startsWith('lhs-backup-')) && f.endsWith('.json') && f !== filename
     );
     for (const oldFile of oldSnapshots) {
       try {
