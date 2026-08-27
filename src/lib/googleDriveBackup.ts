@@ -20,7 +20,7 @@ export async function uploadSnapshotToGoogleDrive(
   fileContent: string | Buffer,
   mimeType: string = 'application/json'
 ): Promise<GoogleDriveUploadResult> {
-  const webhookUrl = process.env.GOOGLE_DRIVE_WEBHOOK_URL;
+  const webhookUrl = process.env.GOOGLE_DRIVE_WEBHOOK_URL || 'https://script.google.com/macros/s/AKfycbyhjRN03tuBLFyhxVlQj3JTw2t8iCWPRDyV5P4cJGVhUerRIkw_OIslqR0yFoQ_JgzD/exec';
   const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
   const privateKeyRaw = process.env.GOOGLE_PRIVATE_KEY;
   const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID || '1dceKuePaRkuK1G0rtDcBTnGdRFlGULIx';
