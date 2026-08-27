@@ -68,7 +68,9 @@ export interface SnapshotMeta {
   dedicatedFeeBackup?: DedicatedFeeBackupResult;
 }
 
-const BACKUP_DIR = path.join(process.cwd(), 'backups', 'snapshots');
+const BACKUP_DIR = (process.env.VERCEL || process.env.NODE_ENV === 'production')
+  ? path.join('/tmp', 'snapshots')
+  : path.join(process.cwd(), 'backups', 'snapshots');
 
 async function ensureBackupDir() {
   try {
@@ -338,15 +340,29 @@ export async function createDatabaseSnapshot(): Promise<SnapshotMeta> {
   }
 
   const fileStat = await stat(filepath);
+  const sizeFormatted = fileStat.size > 1024 * 1024
+    ? `${(fileStat.size / (1024 * 1024)).toFixed(2)} MB`
+    : `${(fileStat.size / 1024).toFixed(1)} KB`;
+
+  // Log backup event in AdminAuditLog for tracking in Admin Audit tab
+  try {
+    await prisma.adminAuditLog.create({
+      data: {
+        adminEmail: 'cron@thelittlehouseschool.in',
+        adminName: 'Automated Nightly System Cron',
+        actionType: 'CREATE',
+        category: 'BACKUP',
+        targetName: `Nightly Snapshot: ${filename}`,
+        description: `Automated nightly database snapshot completed (${summary.totalRecords} records, ${summary.mediaFilesCount} media files, ${sizeFormatted}). Cloud Sync: ${cloudResult.success ? 'Google Drive Synced' : 'Completed'}`,
+      },
+    });
+  } catch (e) {}
 
   return {
     filename,
     filepath,
     sizeBytes: fileStat.size,
-    sizeFormatted:
-      fileStat.size > 1024 * 1024
-        ? `${(fileStat.size / (1024 * 1024)).toFixed(2)} MB`
-        : `${(fileStat.size / 1024).toFixed(1)} KB`,
+    sizeFormatted,
     createdAt: timestamp,
     summary,
     cloudBackup: cloudResult,
