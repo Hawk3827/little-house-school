@@ -35,9 +35,13 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "LITTLE HOUSE Administration" }],
   icons: {
-    icon: "/school-logo.png?v=99",
-    shortcut: "/school-logo.png?v=99",
-    apple: "/school-logo.png?v=99",
+    icon: [
+      { url: 'https://thelittlehouseschool.in/school-logo.png', sizes: '512x512', type: 'image/png' },
+      { url: 'https://thelittlehouseschool.in/icon.png', sizes: '192x192', type: 'image/png' },
+      { url: 'https://thelittlehouseschool.in/favicon.ico', sizes: 'any' },
+    ],
+    shortcut: 'https://thelittlehouseschool.in/school-logo.png',
+    apple: 'https://thelittlehouseschool.in/school-logo.png',
   },
   openGraph: {
     title: "LITTLE HOUSE • A Family of Learning (Waiton Lamkhai)",
@@ -46,13 +50,13 @@ export const metadata: Metadata = {
     siteName: "LITTLE HOUSE SCHOOL",
     images: [
       {
-        url: "/school-banner.png",
+        url: "https://thelittlehouseschool.in/school-banner.png",
         width: 1200,
         height: 630,
         alt: "Little House School Campus Banner",
       },
       {
-        url: "/school-logo.png",
+        url: "https://thelittlehouseschool.in/school-logo.png",
         width: 512,
         height: 512,
         alt: "Little House School Crest Logo",
@@ -65,7 +69,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "LITTLE HOUSE • A Family of Learning (Waiton Lamkhai)",
     description: "Official portal for Little House School, Waiton Lamkhai, Imphal East, Manipur. Admissions, report cards, and notices.",
-    images: ["/school-banner.png"],
+    images: ["https://thelittlehouseschool.in/school-banner.png"],
   },
   robots: {
     index: true,
@@ -84,9 +88,11 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <head>
-        <link rel="icon" href="/school-logo.png?v=99" type="image/png" sizes="any" />
-        <link rel="apple-touch-icon" href="/school-logo.png?v=99" />
-        <link rel="shortcut icon" href="/school-logo.png?v=99" />
+        <link rel="icon" href="https://thelittlehouseschool.in/school-logo.png" sizes="512x512" type="image/png" />
+        <link rel="icon" href="https://thelittlehouseschool.in/icon.png" sizes="192x192" type="image/png" />
+        <link rel="icon" href="https://thelittlehouseschool.in/favicon.ico" sizes="any" />
+        <link rel="shortcut icon" href="https://thelittlehouseschool.in/school-logo.png" />
+        <link rel="apple-touch-icon" href="https://thelittlehouseschool.in/school-logo.png" />
         <link rel="preload" as="image" href="/hero-bg.webp" type="image/webp" fetchPriority="high" />
         <StructuredData />
       </head>
