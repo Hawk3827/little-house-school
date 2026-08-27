@@ -72,11 +72,13 @@ export default function MessagesPage() {
     fetchContacts();
 
     const interval = setInterval(() => {
-      fetchContacts(true);
-      if (selectedContact) {
-        fetchMessages(selectedContact.id, true);
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        fetchContacts(true);
+        if (selectedContact) {
+          fetchMessages(selectedContact.id, true);
+        }
       }
-    }, 4000);
+    }, 30000);
 
     return () => clearInterval(interval);
   }, [selectedContact?.id]);

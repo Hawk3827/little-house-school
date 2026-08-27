@@ -73,8 +73,10 @@ export default function AdminAuditLogManagement() {
   useEffect(() => {
     fetchAuditLogs();
     const interval = setInterval(() => {
-      fetchAuditLogs();
-    }, 5000);
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        fetchAuditLogs();
+      }
+    }, 60000);
     return () => clearInterval(interval);
   }, [selectedCategory, limit]);
 
