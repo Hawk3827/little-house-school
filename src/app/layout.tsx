@@ -19,14 +19,14 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL('https://thelittlehouseschool.in'),
   title: {
-    default: "LITTLE HOUSE • A Family of Learning | Waiton Lamkhai, Manipur",
+    default: "LITTLE HOUSE SCHOOL | Waiton Lamkhai, Imphal East, Manipur",
     template: "%s | LITTLE HOUSE SCHOOL"
   },
   description: "Official portal for Little House School, Waiton Lamkhai, Imphal East, Manipur (795114). Admissions open from Play-Group to Class VI. View exam schedules, van fares, monthly report cards, and campus notices.",
   keywords: [
-    "Little House",
     "Little House School",
-    "Waiton Lamkhai",
+    "Little House",
+    "Little House Waiton",
     "School in Imphal East",
     "Pre-school Manipur",
     "Student Report Card",
@@ -44,32 +44,32 @@ export const metadata: Metadata = {
     apple: 'https://thelittlehouseschool.in/school-logo.png',
   },
   openGraph: {
-    title: "LITTLE HOUSE • A Family of Learning (Waiton Lamkhai)",
-    description: "Nurturing creative minds, shaping ethical character, and inspiring academic excellence in Manipur. Admissions open for Play-Group to Class VI.",
+    title: "LITTLE HOUSE SCHOOL | Waiton Lamkhai, Imphal East, Manipur",
+    description: "Official portal for Little House School, Waiton Lamkhai, Imphal East, Manipur. Admissions open for Play-Group to Class VI.",
     url: "https://thelittlehouseschool.in",
     siteName: "LITTLE HOUSE SCHOOL",
     images: [
+      {
+        url: "https://thelittlehouseschool.in/school-logo.png",
+        width: 512,
+        height: 512,
+        alt: "LITTLE HOUSE SCHOOL Official Crest Logo",
+      },
       {
         url: "https://thelittlehouseschool.in/school-banner.png",
         width: 1200,
         height: 630,
         alt: "Little House School Campus Banner",
-      },
-      {
-        url: "https://thelittlehouseschool.in/school-logo.png",
-        width: 512,
-        height: 512,
-        alt: "Little House School Crest Logo",
       }
     ],
     locale: "en_IN",
     type: "website",
   },
   twitter: {
-    card: "summary_large_image",
-    title: "LITTLE HOUSE • A Family of Learning (Waiton Lamkhai)",
+    card: "summary",
+    title: "LITTLE HOUSE SCHOOL | Waiton Lamkhai, Imphal East, Manipur",
     description: "Official portal for Little House School, Waiton Lamkhai, Imphal East, Manipur. Admissions, report cards, and notices.",
-    images: ["https://thelittlehouseschool.in/school-banner.png"],
+    images: ["https://thelittlehouseschool.in/school-logo.png"],
   },
   robots: {
     index: true,
