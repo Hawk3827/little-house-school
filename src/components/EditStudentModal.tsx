@@ -119,8 +119,8 @@ export default function EditStudentModal({ isOpen, onClose, student, onSuccess }
   if (!isOpen || !student) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center overflow-y-auto bg-black/60 backdrop-blur-sm p-4 animate-fadeIn">
-      <div className="bg-white rounded-2xl max-w-lg w-full border border-gray-100 shadow-xl overflow-hidden text-left relative flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-[9999] flex justify-end overflow-hidden bg-black/40 backdrop-blur-[2px] animate-fadeIn" onClick={onClose}>
+      <div className="bg-white max-w-xl w-full h-full border-l border-slate-200 shadow-2xl overflow-hidden text-left relative flex flex-col animate-slideInRight rounded-l-3xl rounded-r-none ml-auto" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
           <div>

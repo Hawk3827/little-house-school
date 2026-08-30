@@ -169,11 +169,11 @@ export default function StudentDetailModal({
   return (
     <>
       <div 
-        className="fixed inset-0 z-[9999] overflow-y-auto flex items-center justify-center bg-black/70 backdrop-blur-sm p-3 sm:p-4 animate-fadeIn"
+        className="fixed inset-0 z-[9999] overflow-hidden flex justify-end bg-black/40 backdrop-blur-[2px] animate-fadeIn"
         onClick={onClose}
       >
         <div 
-          className="bg-white rounded-3xl max-w-2xl w-full border border-gray-100 shadow-2xl overflow-hidden text-left relative flex flex-col max-h-[90vh] my-auto"
+          className="bg-white max-w-2xl w-full h-full border-l border-slate-200 shadow-2xl overflow-hidden text-left relative flex flex-col animate-slideInRight rounded-l-3xl rounded-r-none ml-auto"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header Profile Banner */}
