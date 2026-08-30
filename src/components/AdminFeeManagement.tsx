@@ -497,20 +497,16 @@ export default function AdminFeeManagement() {
                       const isCellActive = cellModalOpen && cellStudent?.admissionNo === student.admissionNo && cellMonth === month;
 
                       return (
-                        <td key={month} className="relative py-2 px-2 text-center border-l border-slate-100">
+                        <td key={month} className="py-2 px-2 text-center border-l border-slate-100">
                           {payment ? (
                             <button
                               onClick={() => {
-                                if (isCellActive) {
-                                  setCellModalOpen(false);
-                                } else {
-                                  setCellStudent(student);
-                                  setCellMonth(month);
-                                  setCellRefId(payment.paymentRef);
-                                  setCellMode(payment.paymentMode === 'CASH_OFFLINE' ? 'OFFLINE_CASH' : 'ONLINE_UPI');
-                                  setIsEditingCell(false); // Default to protected read-only view!
-                                  setCellModalOpen(true);
-                                }
+                                setCellStudent(student);
+                                setCellMonth(month);
+                                setCellRefId(payment.paymentRef);
+                                setCellMode(payment.paymentMode === 'CASH_OFFLINE' ? 'OFFLINE_CASH' : 'ONLINE_UPI');
+                                setIsEditingCell(false); // Default to protected read-only view!
+                                setCellModalOpen(true);
                               }}
                               className="w-full p-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-left transition group"
                               title={`Paid on ${new Date(payment.createdAt).toLocaleDateString()}`}
@@ -528,204 +524,16 @@ export default function AdminFeeManagement() {
                           ) : (
                             <button
                               onClick={() => {
-                                if (isCellActive) {
-                                  setCellModalOpen(false);
-                                } else {
-                                  setCellStudent(student);
-                                  setCellMonth(month);
-                                  setCellRefId('');
-                                  setIsEditingCell(true); // Unpaid cell directly opens entry form!
-                                  setCellModalOpen(true);
-                                }
+                                setCellStudent(student);
+                                setCellMonth(month);
+                                setCellRefId('');
+                                setIsEditingCell(true); // Unpaid cell directly opens entry form!
+                                setCellModalOpen(true);
                               }}
                               className="w-full py-2 px-2 rounded-xl bg-slate-50 hover:bg-sky-100 border border-dashed border-slate-200 hover:border-sky-300 text-slate-400 hover:text-sky-800 text-[11px] font-mono font-bold transition"
                             >
                               + Mark Paid
                             </button>
-                          )}
-
-                          {/* ANCHORED CONTEXTUAL POPOVER RIGHT AT PRESSED BUTTON */}
-                          {isCellActive && (
-                            <>
-                              <div 
-                                className="fixed inset-0 z-40 bg-transparent" 
-                                onClick={() => setCellModalOpen(false)} 
-                              />
-                              <div className="absolute top-full right-0 sm:right-auto sm:left-1/2 sm:-translate-x-1/2 mt-1 z-50 w-72 sm:w-80 bg-white rounded-2xl border border-sky-200 shadow-2xl p-4 text-left animate-fadeIn">
-                                <div className="flex items-center justify-between border-b pb-2 mb-3">
-                                  <div>
-                                    <span className="text-[9px] font-mono font-bold text-sky-700 uppercase tracking-widest bg-sky-50 px-1.5 py-0.5 rounded border border-sky-100">
-                                      FEE RECORD COUNTER
-                                    </span>
-                                    <h4 className="font-extrabold text-slate-900 text-xs mt-0.5">{student.name}</h4>
-                                    <span className="text-[10px] text-slate-500 font-mono">{student.admissionNo} • {month}</span>
-                                  </div>
-                                  <button
-                                    type="button"
-                                    onClick={() => setCellModalOpen(false)}
-                                    className="p-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600"
-                                  >
-                                    <X className="h-3.5 w-3.5" />
-                                  </button>
-                                </div>
-
-                                {/* PROTECTED READ-ONLY VERIFIED VIEW (When payment exists & not editing) */}
-                                {payment && !isEditingCell ? (
-                                  <div className="space-y-3.5 animate-fadeIn">
-                                    <div className="bg-emerald-50 border border-emerald-200 p-3 rounded-xl space-y-2 text-xs font-mono">
-                                      <div className="flex items-center justify-between">
-                                        <span className="text-[10px] font-bold text-emerald-800 uppercase flex items-center space-x-1">
-                                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
-                                          <span>Verified & Paid</span>
-                                        </span>
-                                        <span className="text-[10px] text-emerald-700 font-extrabold">
-                                          {payment.paymentMode === 'CASH_OFFLINE' ? 'CASH RECEIPT' : payment.paymentMode.includes('RAZORPAY') ? 'RAZORPAY GATEWAY' : 'UPI ONLINE'}
-                                        </span>
-                                      </div>
-                                      <div className="flex justify-between border-t border-emerald-200/60 pt-1.5 text-slate-700">
-                                        <span>Reference:</span>
-                                        <span className="font-bold text-slate-900">{payment.paymentRef}</span>
-                                      </div>
-                                      <div className="flex justify-between text-slate-700">
-                                        <span>Receipt No:</span>
-                                        <span className="font-bold text-sky-900">{payment.receiptNo}</span>
-                                      </div>
-                                      <div className="flex justify-between text-slate-700">
-                                        <span>Amount:</span>
-                                        <span className="font-bold text-emerald-700">₹{payment.totalAmount.toLocaleString('en-IN')}</span>
-                                      </div>
-                                      <div className="flex justify-between border-t border-emerald-200/60 pt-1.5 text-slate-700">
-                                        <span>Recorded By:</span>
-                                        <span className="font-bold text-purple-900 flex items-center space-x-1">
-                                          <ShieldCheck className="h-3 w-3 text-purple-600 inline" />
-                                          <span>{(payment as any).recordedBy || 'Admin Office'}</span>
-                                        </span>
-                                      </div>
-                                    </div>
-
-                                    <div className="flex items-center space-x-2">
-                                      <button
-                                        type="button"
-                                        onClick={() => setIsEditingCell(true)}
-                                        className="flex-1 py-2 px-3 bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs rounded-xl transition flex items-center justify-center space-x-1.5 shadow-xs"
-                                      >
-                                        <Edit2 className="h-3.5 w-3.5" />
-                                        <span>Edit Record</span>
-                                      </button>
-                                      <button
-                                        type="button"
-                                        onClick={() => setCellModalOpen(false)}
-                                        className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition"
-                                      >
-                                        Close
-                                      </button>
-                                    </div>
-                                  </div>
-                                ) : (
-                                  /* EDITABLE FORM MODE */
-                                  <form onSubmit={handleMarkCellFee} className="space-y-3 animate-fadeIn">
-                                    <div className="grid grid-cols-2 gap-1.5">
-                                      <button
-                                        type="button"
-                                        onClick={() => setCellMode('ONLINE_UPI')}
-                                        className={`py-2 px-2 rounded-xl border text-[11px] font-bold transition flex items-center justify-center space-x-1 ${
-                                          cellMode === 'ONLINE_UPI'
-                                            ? 'bg-sky-600 text-white border-sky-600 shadow-xs'
-                                            : 'bg-slate-50 text-slate-700 border-slate-200'
-                                        }`}
-                                      >
-                                        <CreditCard className="h-3.5 w-3.5" />
-                                        <span>UPI</span>
-                                      </button>
-
-                                      <button
-                                        type="button"
-                                        onClick={() => setCellMode('OFFLINE_CASH')}
-                                        className={`py-2 px-2 rounded-xl border text-[11px] font-bold transition flex items-center justify-center space-x-1 ${
-                                          cellMode === 'OFFLINE_CASH'
-                                            ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-xs'
-                                            : 'bg-slate-50 text-slate-700 border-slate-200'
-                                        }`}
-                                      >
-                                        <DollarSign className="h-3.5 w-3.5" />
-                                        <span>Cash</span>
-                                      </button>
-                                    </div>
-
-                                    <div>
-                                      <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">
-                                        {cellMode === 'ONLINE_UPI' ? 'UPI UTR Reference *' : 'Receipt Number *'}
-                                      </label>
-                                      <input
-                                        type="text"
-                                        required
-                                        value={cellRefId}
-                                        onChange={(e) => setCellRefId(e.target.value)}
-                                        placeholder={cellMode === 'ONLINE_UPI' ? 'e.g. 428195829104' : 'e.g. REC-8492'}
-                                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:ring-2 focus:ring-sky-500"
-                                      />
-                                    </div>
-
-                                    <div>
-                                      <label className="block text-[10px] font-bold text-slate-700 uppercase tracking-wider mb-1">
-                                        Amount (₹) *
-                                      </label>
-                                      <input
-                                        type="number"
-                                        required
-                                        value={cellAmount}
-                                        onChange={(e) => setCellAmount(e.target.value)}
-                                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-extrabold text-emerald-700 focus:ring-2 focus:ring-emerald-500"
-                                      />
-                                    </div>
-
-                                    {/* STAFF SECURITY PIN FOR ACCOUNTABILITY */}
-                                    <div className="p-2.5 bg-purple-50/70 border border-purple-200 rounded-xl space-y-1">
-                                      <label className="block text-[10px] font-extrabold text-purple-900 uppercase tracking-wider flex items-center justify-between">
-                                        <span className="flex items-center space-x-1">
-                                          <ShieldCheck className="h-3.5 w-3.5 text-purple-700" />
-                                          <span>Staff Security PIN *</span>
-                                        </span>
-                                        <span className="text-[9px] font-mono text-purple-600 font-normal">Accountability Audit</span>
-                                      </label>
-                                      <input
-                                        type="password"
-                                        required
-                                        maxLength={6}
-                                        value={cellStaffPin}
-                                        onChange={(e) => setCellStaffPin(e.target.value)}
-                                        placeholder="Enter your Staff PIN (e.g. 1234)"
-                                        className="w-full px-3 py-2 bg-white border border-purple-300 rounded-lg text-xs font-mono font-bold text-purple-900 focus:ring-2 focus:ring-purple-500 placeholder:text-purple-300"
-                                      />
-                                    </div>
-
-                                    {cellError && (
-                                      <p className="text-[10px] text-rose-600 font-semibold">{cellError}</p>
-                                    )}
-
-                                    <div className="flex items-center space-x-2 pt-1">
-                                      <button
-                                        type="submit"
-                                        disabled={cellSubmitting}
-                                        className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs rounded-xl transition shadow-xs flex items-center justify-center space-x-1.5"
-                                      >
-                                        {cellSubmitting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Receipt className="h-3.5 w-3.5" />}
-                                        <span>Save Payment Record</span>
-                                      </button>
-                                      {payment && (
-                                        <button
-                                          type="button"
-                                          onClick={() => setIsEditingCell(false)}
-                                          className="px-3 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition"
-                                        >
-                                          Cancel
-                                        </button>
-                                      )}
-                                    </div>
-                                  </form>
-                                )}
-                              </div>
-                            </>
                           )}
                         </td>
                       );
@@ -739,6 +547,211 @@ export default function AdminFeeManagement() {
       </div>
 
 
+
+      {/* DEDICATED FIXED FEE CELL DOSSIER & PAYMENT ENTRY MODAL */}
+      {cellModalOpen && cellStudent && cellMonth && (() => {
+        const activePayment = payments.find(
+          (p) => p.admissionNo === cellStudent.admissionNo && p.paidMonths === cellMonth
+        );
+
+        return (
+          <div 
+            className="fixed inset-0 z-[99999] bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeIn select-none"
+            onClick={() => setCellModalOpen(false)}
+          >
+            <div 
+              className="bg-white rounded-3xl border border-sky-100 shadow-2xl max-w-md w-full overflow-hidden text-left relative flex flex-col animate-slideDown"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header Profile Banner */}
+              <div className="bg-gradient-to-r from-sky-900 via-indigo-900 to-slate-900 text-white p-5 sm:p-6 relative">
+                <button
+                  type="button"
+                  onClick={() => setCellModalOpen(false)}
+                  className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition cursor-pointer"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+                <span className="text-[10px] font-mono font-black uppercase tracking-widest bg-amber-400 text-slate-950 px-2.5 py-0.5 rounded-full inline-block mb-1.5 shadow-xs border border-amber-300">
+                  FEE RECORD DOSSIER
+                </span>
+                <h3 className="text-xl font-black text-white">{cellStudent.name}</h3>
+                <p className="text-xs text-sky-200 font-mono mt-0.5 font-bold">
+                  Admission No: <span className="text-white">{cellStudent.admissionNo}</span> • Month: <span className="text-amber-300">{cellMonth}</span>
+                </p>
+              </div>
+
+              {/* Modal Body Content */}
+              <div className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+                {activePayment && !isEditingCell ? (
+                  /* PROTECTED READ-ONLY VERIFIED VIEW */
+                  <div className="space-y-4 animate-fadeIn">
+                    <div className="bg-emerald-50/80 border border-emerald-200 p-4 rounded-2xl space-y-2.5 text-xs font-mono">
+                      <div className="flex items-center justify-between pb-2 border-b border-emerald-200/70">
+                        <span className="text-[11px] font-bold text-emerald-900 uppercase flex items-center space-x-1.5">
+                          <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                          <span>Verified &amp; Paid</span>
+                        </span>
+                        <span className="text-[10px] bg-emerald-200/80 text-emerald-950 px-2 py-0.5 rounded font-extrabold">
+                          {activePayment.paymentMode === 'CASH_OFFLINE'
+                            ? 'CASH RECEIPT'
+                            : activePayment.paymentMode.includes('RAZORPAY')
+                            ? 'RAZORPAY GATEWAY'
+                            : 'UPI ONLINE'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-slate-700">
+                        <span>Reference / UTR:</span>
+                        <span className="font-bold text-slate-900">{activePayment.paymentRef}</span>
+                      </div>
+                      <div className="flex justify-between text-slate-700">
+                        <span>Receipt No:</span>
+                        <span className="font-bold text-sky-900">{activePayment.receiptNo}</span>
+                      </div>
+                      <div className="flex justify-between text-slate-700">
+                        <span>Amount Paid:</span>
+                        <span className="font-extrabold text-emerald-700 text-sm">₹{activePayment.totalAmount.toLocaleString('en-IN')}</span>
+                      </div>
+                      <div className="flex justify-between border-t border-emerald-200/70 pt-2 text-slate-700">
+                        <span>Recorded By:</span>
+                        <span className="font-bold text-purple-900 flex items-center space-x-1">
+                          <ShieldCheck className="h-3.5 w-3.5 text-purple-600 inline" />
+                          <span>{(activePayment as any).recordedBy || 'Admin Office'}</span>
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-2 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setIsEditingCell(true)}
+                        className="flex-1 py-3 px-4 bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs rounded-xl transition flex items-center justify-center space-x-2 shadow-xs cursor-pointer"
+                      >
+                        <Edit2 className="h-4 w-4" />
+                        <span>Edit Record Reference</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setCellModalOpen(false)}
+                        className="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition cursor-pointer"
+                      >
+                        Close
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  /* EDITABLE FORM MODE */
+                  <form onSubmit={handleMarkCellFee} className="space-y-4 animate-fadeIn">
+                    <div className="space-y-1">
+                      <label className="block text-xs font-mono font-bold text-slate-700 uppercase tracking-wider">
+                        Payment Mode <span className="text-red-500">*</span>
+                      </label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setCellMode('ONLINE_UPI')}
+                          className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer ${
+                            cellMode === 'ONLINE_UPI'
+                              ? 'bg-sky-600 text-white border-sky-600 shadow-xs'
+                              : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                          }`}
+                        >
+                          <CreditCard className="h-4 w-4" />
+                          <span>UPI Online</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setCellMode('OFFLINE_CASH')}
+                          className={`py-2.5 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center space-x-1.5 cursor-pointer ${
+                            cellMode === 'OFFLINE_CASH'
+                              ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-xs'
+                              : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                          }`}
+                        >
+                          <DollarSign className="h-4 w-4" />
+                          <span>Offline Cash</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="block text-xs font-mono font-bold text-slate-700 uppercase tracking-wider">
+                        {cellMode === 'ONLINE_UPI' ? 'UPI UTR Reference ID *' : 'Cash Receipt Number *'}
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={cellRefId}
+                        onChange={(e) => setCellRefId(e.target.value)}
+                        placeholder={cellMode === 'ONLINE_UPI' ? 'e.g. 428195829104' : 'e.g. REC-2026-8492'}
+                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold text-slate-900 focus:ring-2 focus:ring-sky-500"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="block text-xs font-mono font-bold text-slate-700 uppercase tracking-wider">
+                        Amount Paid (₹) *
+                      </label>
+                      <input
+                        type="number"
+                        required
+                        value={cellAmount}
+                        onChange={(e) => setCellAmount(e.target.value)}
+                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-extrabold text-emerald-700 focus:ring-2 focus:ring-emerald-500"
+                      />
+                    </div>
+
+                    {/* STAFF SECURITY PIN FOR ACCOUNTABILITY */}
+                    <div className="p-3 bg-purple-50/80 border border-purple-200 rounded-2xl space-y-1.5">
+                      <label className="block text-[11px] font-extrabold text-purple-900 uppercase tracking-wider flex items-center justify-between">
+                        <span className="flex items-center space-x-1.5">
+                          <ShieldCheck className="h-4 w-4 text-purple-700" />
+                          <span>Staff Security PIN *</span>
+                        </span>
+                        <span className="text-[9px] font-mono text-purple-600 font-normal">Accountability Audit</span>
+                      </label>
+                      <input
+                        type="password"
+                        required
+                        maxLength={6}
+                        value={cellStaffPin}
+                        onChange={(e) => setCellStaffPin(e.target.value)}
+                        placeholder="Enter your Staff PIN (e.g. 1234)"
+                        className="w-full px-3.5 py-2.5 bg-white border border-purple-300 rounded-xl text-xs font-mono font-bold text-purple-900 focus:ring-2 focus:ring-purple-500 placeholder:text-purple-300"
+                      />
+                    </div>
+
+                    {cellError && (
+                      <p className="text-xs text-rose-600 font-bold bg-rose-50 p-2.5 rounded-xl border border-rose-200">{cellError}</p>
+                    )}
+
+                    <div className="flex items-center space-x-2 pt-2">
+                      <button
+                        type="submit"
+                        disabled={cellSubmitting}
+                        className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs rounded-xl transition shadow-xs flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50"
+                      >
+                        {cellSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Receipt className="h-4 w-4" />}
+                        <span>Save Payment Record</span>
+                      </button>
+                      {activePayment && (
+                        <button
+                          type="button"
+                          onClick={() => setIsEditingCell(false)}
+                          className="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition cursor-pointer"
+                        >
+                          Cancel
+                        </button>
+                      )}
+                    </div>
+                  </form>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* BULK EXCEL / CSV IMPORT MODAL */}
       {importModalOpen && (
