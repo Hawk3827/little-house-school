@@ -459,7 +459,7 @@ export default function AdminFeeManagement() {
             <p className="text-xs text-slate-500">Enroll new students or select another class tab above.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto pb-12">
             <table className="w-full text-left text-xs border-collapse">
               <thead className="bg-slate-900 text-white text-[10px] font-mono font-bold uppercase tracking-wider sticky top-0 z-20">
                 <tr>
