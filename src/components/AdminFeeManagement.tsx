@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   CreditCard, 
   Search, 
@@ -108,7 +109,29 @@ export default function AdminFeeManagement() {
   const [cellSubmitting, setCellSubmitting] = useState(false);
   const [cellError, setCellError] = useState('');
   const [isEditingCell, setIsEditingCell] = useState(false);
-  const [popoverPos, setPopoverPos] = useState<{ top?: number; bottom?: number; left: number } | null>(null);
+  const [mounted, setMounted] = useState(false);
+  const [popoverPos, setPopoverPos] = useState<{ 
+    top?: number; 
+    bottom?: number; 
+    left: number; 
+    arrowLeft: number;
+    placement: 'top' | 'bottom';
+  } | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!cellModalOpen) return;
+    const handleDismiss = () => setCellModalOpen(false);
+    window.addEventListener('scroll', handleDismiss, true);
+    window.addEventListener('resize', handleDismiss);
+    return () => {
+      window.removeEventListener('scroll', handleDismiss, true);
+      window.removeEventListener('resize', handleDismiss);
+    };
+  }, [cellModalOpen]);
 
   const handleCellClick = (
     e: React.MouseEvent<HTMLButtonElement>,
@@ -117,28 +140,34 @@ export default function AdminFeeManagement() {
     payment: FeePaymentRecord | undefined
   ) => {
     const rect = e.currentTarget.getBoundingClientRect();
-    const spaceBelow = window.innerHeight - rect.bottom;
-    const popoverHeight = 360;
+    const popoverHeight = 380;
     const popoverWidth = 320;
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const buttonCenterX = rect.left + rect.width / 2;
 
+    let placement: 'top' | 'bottom' = 'bottom';
     let top: number | undefined = undefined;
     let bottom: number | undefined = undefined;
 
     if (spaceBelow < popoverHeight && rect.top > popoverHeight) {
-      // Automatically flip UPWARDS right above the clicked month button!
-      bottom = window.innerHeight - rect.top + 6;
+      // Flip UPWARDS right above the clicked month button!
+      placement = 'top';
+      bottom = window.innerHeight - rect.top + 8;
     } else {
       // Open BELOW the clicked month button!
-      top = rect.bottom + 6;
+      placement = 'bottom';
+      top = rect.bottom + 8;
     }
 
-    let left = rect.left + rect.width / 2 - popoverWidth / 2;
-    if (left < 16) left = 16;
-    if (left + popoverWidth > window.innerWidth - 16) {
-      left = window.innerWidth - popoverWidth - 16;
+    let left = buttonCenterX - popoverWidth / 2;
+    if (left < 12) left = 12;
+    if (left + popoverWidth > window.innerWidth - 12) {
+      left = window.innerWidth - popoverWidth - 12;
     }
 
-    setPopoverPos({ top, bottom, left });
+    const arrowLeft = Math.max(16, Math.min(popoverWidth - 24, buttonCenterX - left - 6));
+
+    setPopoverPos({ top, bottom, left, arrowLeft, placement });
     setCellStudent(student);
     setCellMonth(month);
 
@@ -580,44 +609,58 @@ export default function AdminFeeManagement() {
 
 
       {/* ANCHORED CONTEXTUAL POPOVER RIGHT AT PRESSED MONTH CELL RECORD */}
-      {cellModalOpen && cellStudent && cellMonth && popoverPos && (() => {
-        const activePayment = payments.find(
-          (p) => p.admissionNo === cellStudent.admissionNo && p.paidMonths === cellMonth
-        );
+      {mounted && cellModalOpen && cellStudent && cellMonth && popoverPos && createPortal(
+        (() => {
+          const activePayment = payments.find(
+            (p) => p.admissionNo === cellStudent.admissionNo && p.paidMonths === cellMonth
+          );
 
-        return (
-          <>
-            <div 
-              className="fixed inset-0 z-[99998] bg-black/20 backdrop-blur-[1px]"
-              onClick={() => setCellModalOpen(false)}
-            />
-            <div 
-              style={{
-                position: 'fixed',
-                top: popoverPos.top !== undefined ? `${popoverPos.top}px` : undefined,
-                bottom: popoverPos.bottom !== undefined ? `${popoverPos.bottom}px` : undefined,
-                left: `${popoverPos.left}px`,
-                width: '320px',
-              }}
-              className="z-[99999] bg-white rounded-2xl border border-sky-200 shadow-2xl p-4 text-left animate-fadeIn shadow-sky-900/20 select-none flex flex-col"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-center justify-between border-b pb-2 mb-3">
-                <div>
-                  <span className="text-[9px] font-mono font-bold text-sky-700 uppercase tracking-widest bg-sky-50 px-1.5 py-0.5 rounded border border-sky-100">
-                    FEE RECORD COUNTER
-                  </span>
-                  <h4 className="font-extrabold text-slate-900 text-xs mt-0.5">{cellStudent.name}</h4>
-                  <span className="text-[10px] text-slate-500 font-mono">{cellStudent.admissionNo} • {cellMonth}</span>
+          return (
+            <>
+              <div 
+                className="fixed inset-0 z-[99998] bg-black/20 backdrop-blur-[1px]"
+                onClick={() => setCellModalOpen(false)}
+              />
+              <div 
+                style={{
+                  position: 'fixed',
+                  top: popoverPos.top !== undefined ? `${popoverPos.top}px` : undefined,
+                  bottom: popoverPos.bottom !== undefined ? `${popoverPos.bottom}px` : undefined,
+                  left: `${popoverPos.left}px`,
+                  width: '320px',
+                }}
+                className="z-[99999] bg-white rounded-2xl border border-sky-200 shadow-2xl p-4 text-left animate-fadeIn shadow-sky-900/20 select-none flex flex-col relative"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Visual Arrow Pointer to Clicked Cell */}
+                {popoverPos.placement === 'bottom' ? (
+                  <div 
+                    style={{ left: `${popoverPos.arrowLeft}px` }} 
+                    className="absolute -top-2 w-4 h-4 bg-white border-t border-l border-sky-200 rotate-45" 
+                  />
+                ) : (
+                  <div 
+                    style={{ left: `${popoverPos.arrowLeft}px` }} 
+                    className="absolute -bottom-2 w-4 h-4 bg-white border-b border-r border-sky-200 rotate-45" 
+                  />
+                )}
+
+                <div className="flex items-center justify-between border-b pb-2 mb-3 relative z-10">
+                  <div>
+                    <span className="text-[9px] font-mono font-bold text-sky-700 uppercase tracking-widest bg-sky-50 px-1.5 py-0.5 rounded border border-sky-100">
+                      FEE RECORD COUNTER
+                    </span>
+                    <h4 className="font-extrabold text-slate-900 text-xs mt-0.5">{cellStudent.name}</h4>
+                    <span className="text-[10px] text-slate-500 font-mono">{cellStudent.admissionNo} • {cellMonth}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setCellModalOpen(false)}
+                    className="p-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 cursor-pointer transition"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setCellModalOpen(false)}
-                  className="p-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 cursor-pointer transition"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
-              </div>
 
               {/* Modal Body Content */}
               <div className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
@@ -789,7 +832,9 @@ export default function AdminFeeManagement() {
             </div>
           </>
         );
-      })()}
+      })(),
+      document.body
+    )}
 
       {/* BULK EXCEL / CSV IMPORT MODAL */}
       {importModalOpen && (
