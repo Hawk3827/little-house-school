@@ -108,6 +108,50 @@ export default function AdminFeeManagement() {
   const [cellSubmitting, setCellSubmitting] = useState(false);
   const [cellError, setCellError] = useState('');
   const [isEditingCell, setIsEditingCell] = useState(false);
+  const [popoverPos, setPopoverPos] = useState<{ top?: number; bottom?: number; left: number } | null>(null);
+
+  const handleCellClick = (
+    e: React.MouseEvent<HTMLButtonElement>,
+    student: StudentMatrixItem,
+    month: string,
+    payment: FeePaymentRecord | undefined
+  ) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const popoverHeight = 360;
+    const popoverWidth = 320;
+
+    let top: number | undefined = undefined;
+    let bottom: number | undefined = undefined;
+
+    if (spaceBelow < popoverHeight && rect.top > popoverHeight) {
+      // Automatically flip UPWARDS right above the clicked month button!
+      bottom = window.innerHeight - rect.top + 6;
+    } else {
+      // Open BELOW the clicked month button!
+      top = rect.bottom + 6;
+    }
+
+    let left = rect.left + rect.width / 2 - popoverWidth / 2;
+    if (left < 16) left = 16;
+    if (left + popoverWidth > window.innerWidth - 16) {
+      left = window.innerWidth - popoverWidth - 16;
+    }
+
+    setPopoverPos({ top, bottom, left });
+    setCellStudent(student);
+    setCellMonth(month);
+
+    if (payment) {
+      setCellRefId(payment.paymentRef);
+      setCellMode(payment.paymentMode === 'CASH_OFFLINE' ? 'OFFLINE_CASH' : 'ONLINE_UPI');
+      setIsEditingCell(false);
+    } else {
+      setCellRefId('');
+      setIsEditingCell(true);
+    }
+    setCellModalOpen(true);
+  };
 
   // Bulk CSV Import Modal State
   const [importModalOpen, setImportModalOpen] = useState(false);
@@ -500,15 +544,8 @@ export default function AdminFeeManagement() {
                         <td key={month} className="py-2 px-2 text-center border-l border-slate-100">
                           {payment ? (
                             <button
-                              onClick={() => {
-                                setCellStudent(student);
-                                setCellMonth(month);
-                                setCellRefId(payment.paymentRef);
-                                setCellMode(payment.paymentMode === 'CASH_OFFLINE' ? 'OFFLINE_CASH' : 'ONLINE_UPI');
-                                setIsEditingCell(false); // Default to protected read-only view!
-                                setCellModalOpen(true);
-                              }}
-                              className="w-full p-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-left transition group"
+                              onClick={(e) => handleCellClick(e, student, month, payment)}
+                              className="w-full p-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-left transition group cursor-pointer"
                               title={`Paid on ${new Date(payment.createdAt).toLocaleDateString()}`}
                             >
                               <div className="flex items-center justify-between">
@@ -523,14 +560,8 @@ export default function AdminFeeManagement() {
                             </button>
                           ) : (
                             <button
-                              onClick={() => {
-                                setCellStudent(student);
-                                setCellMonth(month);
-                                setCellRefId('');
-                                setIsEditingCell(true); // Unpaid cell directly opens entry form!
-                                setCellModalOpen(true);
-                              }}
-                              className="w-full py-2 px-2 rounded-xl bg-slate-50 hover:bg-sky-100 border border-dashed border-slate-200 hover:border-sky-300 text-slate-400 hover:text-sky-800 text-[11px] font-mono font-bold transition"
+                              onClick={(e) => handleCellClick(e, student, month, undefined)}
+                              className="w-full py-2 px-2 rounded-xl bg-slate-50 hover:bg-sky-100 border border-dashed border-slate-200 hover:border-sky-300 text-slate-400 hover:text-sky-800 text-[11px] font-mono font-bold transition cursor-pointer"
                             >
                               + Mark Paid
                             </button>
@@ -548,37 +579,44 @@ export default function AdminFeeManagement() {
 
 
 
-      {/* DEDICATED FIXED FEE CELL DOSSIER & PAYMENT ENTRY MODAL */}
-      {cellModalOpen && cellStudent && cellMonth && (() => {
+      {/* ANCHORED CONTEXTUAL POPOVER RIGHT AT PRESSED MONTH CELL RECORD */}
+      {cellModalOpen && cellStudent && cellMonth && popoverPos && (() => {
         const activePayment = payments.find(
           (p) => p.admissionNo === cellStudent.admissionNo && p.paidMonths === cellMonth
         );
 
         return (
-          <div 
-            className="fixed inset-0 z-[99999] bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fadeIn select-none"
-            onClick={() => setCellModalOpen(false)}
-          >
+          <>
             <div 
-              className="bg-white rounded-3xl border border-sky-100 shadow-2xl max-w-md w-full overflow-hidden text-left relative flex flex-col animate-slideDown"
+              className="fixed inset-0 z-[99998] bg-black/20 backdrop-blur-[1px]"
+              onClick={() => setCellModalOpen(false)}
+            />
+            <div 
+              style={{
+                position: 'fixed',
+                top: popoverPos.top !== undefined ? `${popoverPos.top}px` : undefined,
+                bottom: popoverPos.bottom !== undefined ? `${popoverPos.bottom}px` : undefined,
+                left: `${popoverPos.left}px`,
+                width: '320px',
+              }}
+              className="z-[99999] bg-white rounded-2xl border border-sky-200 shadow-2xl p-4 text-left animate-fadeIn shadow-sky-900/20 select-none flex flex-col"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Header Profile Banner */}
-              <div className="bg-gradient-to-r from-sky-900 via-indigo-900 to-slate-900 text-white p-5 sm:p-6 relative">
+              <div className="flex items-center justify-between border-b pb-2 mb-3">
+                <div>
+                  <span className="text-[9px] font-mono font-bold text-sky-700 uppercase tracking-widest bg-sky-50 px-1.5 py-0.5 rounded border border-sky-100">
+                    FEE RECORD COUNTER
+                  </span>
+                  <h4 className="font-extrabold text-slate-900 text-xs mt-0.5">{cellStudent.name}</h4>
+                  <span className="text-[10px] text-slate-500 font-mono">{cellStudent.admissionNo} • {cellMonth}</span>
+                </div>
                 <button
                   type="button"
                   onClick={() => setCellModalOpen(false)}
-                  className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition cursor-pointer"
+                  className="p-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 cursor-pointer transition"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-3.5 w-3.5" />
                 </button>
-                <span className="text-[10px] font-mono font-black uppercase tracking-widest bg-amber-400 text-slate-950 px-2.5 py-0.5 rounded-full inline-block mb-1.5 shadow-xs border border-amber-300">
-                  FEE RECORD DOSSIER
-                </span>
-                <h3 className="text-xl font-black text-white">{cellStudent.name}</h3>
-                <p className="text-xs text-sky-200 font-mono mt-0.5 font-bold">
-                  Admission No: <span className="text-white">{cellStudent.admissionNo}</span> • Month: <span className="text-amber-300">{cellMonth}</span>
-                </p>
               </div>
 
               {/* Modal Body Content */}
@@ -749,7 +787,7 @@ export default function AdminFeeManagement() {
                 )}
               </div>
             </div>
-          </div>
+          </>
         );
       })()}
 
