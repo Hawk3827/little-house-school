@@ -52,21 +52,20 @@ export default async function Image() {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-            <div
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="https://thelittlehouseschool.in/school-logo.png"
+              alt="LITTLE HOUSE SCHOOL Logo"
               style={{
-                width: '70px',
-                height: '70px',
-                borderRadius: '18px',
+                width: '80px',
+                height: '80px',
+                borderRadius: '20px',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+                objectFit: 'contain',
                 backgroundColor: 'white',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '36px',
-                boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+                padding: '6px',
               }}
-            >
-              🏫
-            </div>
+            />
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               <span
                 style={{
