@@ -36,13 +36,19 @@ export const metadata: Metadata = {
   authors: [{ name: "LITTLE HOUSE Administration" }],
   icons: {
     icon: [
-      { url: 'https://thelittlehouseschool.in/school-logo.png', sizes: '512x512', type: 'image/png' },
-      { url: 'https://thelittlehouseschool.in/icon.png', sizes: '192x192', type: 'image/png' },
-      { url: 'https://thelittlehouseschool.in/favicon.ico', sizes: 'any' },
+      { url: '/favicon.ico', sizes: '48x48', type: 'image/x-icon' },
+      { url: '/icon-48.png', sizes: '48x48', type: 'image/png' },
+      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icon.png', sizes: '512x512', type: 'image/png' },
+      { url: '/school-logo.png', sizes: '512x512', type: 'image/png' },
     ],
-    shortcut: 'https://thelittlehouseschool.in/school-logo.png',
-    apple: 'https://thelittlehouseschool.in/school-logo.png',
+    shortcut: '/favicon.ico',
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+      { url: '/school-logo.png', sizes: '512x512', type: 'image/png' },
+    ],
   },
+  manifest: '/site.webmanifest',
   openGraph: {
     title: "LITTLE HOUSE SCHOOL | Waiton Lamkhai, Imphal East, Manipur",
     description: "Official portal for Little House School, Waiton Lamkhai, Imphal East, Manipur. Admissions open for Play-Group to Class VI.",
@@ -88,11 +94,13 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <head>
-        <link rel="icon" href="https://thelittlehouseschool.in/school-logo.png" sizes="512x512" type="image/png" />
-        <link rel="icon" href="https://thelittlehouseschool.in/icon.png" sizes="192x192" type="image/png" />
-        <link rel="icon" href="https://thelittlehouseschool.in/favicon.ico" sizes="any" />
-        <link rel="shortcut icon" href="https://thelittlehouseschool.in/school-logo.png" />
-        <link rel="apple-touch-icon" href="https://thelittlehouseschool.in/school-logo.png" />
+        <link rel="icon" href="/favicon.ico" sizes="48x48" />
+        <link rel="icon" href="/icon-48.png" sizes="48x48" type="image/png" />
+        <link rel="icon" href="/icon-192.png" sizes="192x192" type="image/png" />
+        <link rel="icon" href="/icon.png" sizes="512x512" type="image/png" />
+        <link rel="shortcut icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
+        <link rel="manifest" href="/site.webmanifest" />
         <link rel="preload" as="image" href="/hero-bg.webp" type="image/webp" fetchPriority="high" />
         <StructuredData />
       </head>
