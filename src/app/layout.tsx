@@ -36,19 +36,18 @@ export const metadata: Metadata = {
   authors: [{ name: "LITTLE HOUSE Administration" }],
   icons: {
     icon: [
-      { url: '/favicon.ico', sizes: '48x48', type: 'image/x-icon' },
-      { url: '/icon-48.png', sizes: '48x48', type: 'image/png' },
-      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
-      { url: '/icon.png', sizes: '512x512', type: 'image/png' },
-      { url: '/school-logo.png', sizes: '512x512', type: 'image/png' },
+      { url: '/school-logo.png?v=lhs2026', sizes: '512x512', type: 'image/png' },
+      { url: '/icon-192.png?v=lhs2026', sizes: '192x192', type: 'image/png' },
+      { url: '/icon-48.png?v=lhs2026', sizes: '48x48', type: 'image/png' },
+      { url: '/favicon.ico?v=lhs2026', sizes: 'any' },
     ],
-    shortcut: '/favicon.ico',
+    shortcut: '/school-logo.png?v=lhs2026',
     apple: [
-      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
-      { url: '/school-logo.png', sizes: '512x512', type: 'image/png' },
+      { url: '/apple-touch-icon.png?v=lhs2026', sizes: '180x180', type: 'image/png' },
+      { url: '/school-logo.png?v=lhs2026', sizes: '512x512', type: 'image/png' },
     ],
   },
-  manifest: '/site.webmanifest',
+  manifest: '/site.webmanifest?v=lhs2026',
   openGraph: {
     title: "LITTLE HOUSE SCHOOL | Waiton Lamkhai, Imphal East, Manipur",
     description: "Official portal for Little House School, Waiton Lamkhai, Imphal East, Manipur. Admissions open for Play-Group to Class VI.",
@@ -94,13 +93,13 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <head>
-        <link rel="icon" href="/favicon.ico" sizes="48x48" />
-        <link rel="icon" href="/icon-48.png" sizes="48x48" type="image/png" />
-        <link rel="icon" href="/icon-192.png" sizes="192x192" type="image/png" />
-        <link rel="icon" href="/icon.png" sizes="512x512" type="image/png" />
-        <link rel="shortcut icon" href="/favicon.ico" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
-        <link rel="manifest" href="/site.webmanifest" />
+        <link rel="icon" href="/school-logo.png?v=lhs2026" sizes="512x512" type="image/png" />
+        <link rel="icon" href="/icon-192.png?v=lhs2026" sizes="192x192" type="image/png" />
+        <link rel="icon" href="/icon-48.png?v=lhs2026" sizes="48x48" type="image/png" />
+        <link rel="icon" href="/favicon.ico?v=lhs2026" sizes="any" />
+        <link rel="shortcut icon" href="/school-logo.png?v=lhs2026" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=lhs2026" sizes="180x180" />
+        <link rel="manifest" href="/site.webmanifest?v=lhs2026" />
         <link rel="preload" as="image" href="/hero-bg.webp" type="image/webp" fetchPriority="high" />
         <StructuredData />
       </head>
