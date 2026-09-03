@@ -93,13 +93,6 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <head>
-        <link rel="icon" href="/school-logo.png?v=lhs2026" sizes="512x512" type="image/png" />
-        <link rel="icon" href="/icon-192.png?v=lhs2026" sizes="192x192" type="image/png" />
-        <link rel="icon" href="/icon-48.png?v=lhs2026" sizes="48x48" type="image/png" />
-        <link rel="icon" href="/favicon.ico?v=lhs2026" sizes="any" />
-        <link rel="shortcut icon" href="/school-logo.png?v=lhs2026" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=lhs2026" sizes="180x180" />
-        <link rel="manifest" href="/site.webmanifest?v=lhs2026" />
         <link rel="preload" as="image" href="/hero-bg.webp" type="image/webp" fetchPriority="high" />
         <StructuredData />
       </head>
