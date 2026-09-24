@@ -95,22 +95,22 @@ export default function NoticeDetailModal({
         /* 🖼️ PURE IMAGE NOTICE DISPLAY: STRICTLY THE IMAGE + CIRCULAR CROSS EXIT   */
         /* ========================================================================= */
         <div 
-          className="relative z-10 max-w-4xl w-full flex flex-col items-center justify-center animate-scaleUp my-auto"
+          className="relative z-10 max-w-4xl w-full flex flex-col items-center justify-center animate-scaleUp my-auto pointer-events-none"
           onClick={(e) => e.stopPropagation()}
         >
           {/* The Notice Image (Clean, High-Res, Centered) with Cross Sign on Top Right */}
-          <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border-2 border-white/20 bg-white group max-h-[85vh] flex items-center justify-center">
+          <div className="relative inline-flex max-w-full rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border-2 border-white/20 bg-white group max-h-[82vh] sm:max-h-[85vh] items-center justify-center pointer-events-auto">
             <img
               src={notice.imageUrl!}
               alt={notice.title || 'Official School Notice'}
-              className="w-auto h-auto max-h-[82vh] max-w-full object-contain block"
+              className="w-auto h-auto max-h-[80vh] sm:max-h-[82vh] max-w-[92vw] sm:max-w-full object-contain block"
             />
 
             {/* Clean Cross Sign (X) for Exit on top-right corner of the image */}
             <button
               type="button"
               onClick={onClose}
-              className="absolute top-3 right-3 sm:top-4 sm:right-4 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-black/75 hover:bg-red-600 text-white flex items-center justify-center transition-all duration-200 shadow-2xl border border-white/40 backdrop-blur-md cursor-pointer group"
+              className="absolute top-2.5 right-2.5 sm:top-4 sm:right-4 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-black/80 hover:bg-red-600 active:scale-90 text-white flex items-center justify-center transition-all duration-200 shadow-2xl border border-white/40 backdrop-blur-md cursor-pointer group touch-manipulation z-30"
               aria-label="Exit notice"
               title="Close Notice"
             >

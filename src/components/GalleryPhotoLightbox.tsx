@@ -76,14 +76,14 @@ export default function GalleryPhotoLightbox({
       />
 
       <div
-        className="relative z-10 max-w-5xl w-full flex flex-col items-center justify-center animate-scaleUp my-auto"
+        className="relative z-10 max-w-5xl w-full flex flex-col items-center justify-center animate-scaleUp my-auto pointer-events-none"
         onClick={(e) => e.stopPropagation()}
       >
         {/* The Photo / Media Container: Pure image with cross sign on top right */}
-        <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border-2 border-white/20 bg-black/40 group max-h-[88vh] flex items-center justify-center">
+        <div className="relative inline-flex max-w-full rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border-2 border-white/20 bg-black/40 group max-h-[82vh] sm:max-h-[85vh] items-center justify-center pointer-events-auto">
           {isVideo ? (
             youtubeEmbedUrl ? (
-              <div className="w-[85vw] max-w-4xl aspect-video rounded-2xl overflow-hidden bg-black">
+              <div className="w-[90vw] sm:w-[85vw] max-w-4xl aspect-video rounded-2xl overflow-hidden bg-black">
                 <iframe
                   src={youtubeEmbedUrl}
                   title={title || 'School Video'}
@@ -97,14 +97,15 @@ export default function GalleryPhotoLightbox({
                 src={videoUrl}
                 controls
                 autoPlay
-                className="max-h-[85vh] w-auto max-w-full rounded-2xl"
+                playsInline
+                className="max-h-[80vh] sm:max-h-[85vh] w-auto max-w-[92vw] sm:max-w-full rounded-2xl"
               />
             ) : null
           ) : photoUrl ? (
             <img
               src={photoUrl}
               alt={title || 'Campus Photo'}
-              className="w-auto h-auto max-h-[85vh] max-w-full object-contain block rounded-2xl sm:rounded-3xl"
+              className="w-auto h-auto max-h-[80vh] sm:max-h-[85vh] max-w-[92vw] sm:max-w-full object-contain block rounded-2xl sm:rounded-3xl"
             />
           ) : null}
 
@@ -112,7 +113,7 @@ export default function GalleryPhotoLightbox({
           <button
             type="button"
             onClick={onClose}
-            className="absolute top-3 right-3 sm:top-4 sm:right-4 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-black/75 hover:bg-red-600 text-white flex items-center justify-center transition-all duration-200 shadow-2xl border border-white/40 backdrop-blur-md cursor-pointer group"
+            className="absolute top-2.5 right-2.5 sm:top-4 sm:right-4 w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-black/80 hover:bg-red-600 active:scale-90 text-white flex items-center justify-center transition-all duration-200 shadow-2xl border border-white/40 backdrop-blur-md cursor-pointer group touch-manipulation z-30"
             aria-label="Exit photo"
             title="Close"
           >

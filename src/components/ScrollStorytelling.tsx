@@ -91,15 +91,15 @@ export default function ScrollStorytelling() {
         <div className="absolute inset-0 opacity-[0.06] bg-[radial-gradient(#fff_1.5px,transparent_1.5px)] bg-[size:24px_24px]" />
 
         {/* Content Container split into Text panel & Visual panel */}
-        <div className="max-w-7xl mx-auto w-full h-full grid grid-cols-1 lg:grid-cols-2 px-6 sm:px-12 items-center relative">
+        <div className="max-w-7xl mx-auto w-full h-full flex flex-col justify-center lg:grid lg:grid-cols-2 px-5 sm:px-12 items-center relative gap-4 lg:gap-0">
           
           {/* LEFT SIDE: Storytelling Text Layers */}
-          <div className="relative h-[320px] w-full flex items-center">
+          <div className="relative h-[210px] sm:h-[240px] lg:h-[320px] w-full flex items-center">
             
             {/* Beat 1: Vision & Mission */}
             <motion.div
               style={{ opacity: text1Opacity, y: text1Y }}
-              className="absolute left-0 right-0 space-y-4 text-left text-white"
+              className="absolute left-0 right-0 space-y-3 sm:space-y-4 text-left text-white"
             >
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-amber-300 text-xs font-mono font-extrabold uppercase tracking-widest flex items-center space-x-1.5 bg-amber-400/20 border border-amber-300/40 px-3.5 py-1 rounded-full w-fit">
@@ -111,12 +111,12 @@ export default function ScrollStorytelling() {
                 </span>
               </div>
 
-              <h2 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight">
+              <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight">
                 Built on a Foundation<br />
                 of Character & Wisdom.
               </h2>
               
-              <p className="text-sky-100 text-sm sm:text-base max-w-lg leading-relaxed font-normal">
+              <p className="text-sky-100 text-xs sm:text-sm lg:text-base max-w-lg leading-relaxed font-normal">
                 At The Little House School, education is not merely about academic achievement. It is about developing confident, responsible, creative, and compassionate individuals prepared to face the future with knowledge, discipline, and courage.
               </p>
             </motion.div>
@@ -124,19 +124,19 @@ export default function ScrollStorytelling() {
             {/* Beat 2: Foundational & Core Academic Curriculum */}
             <motion.div
               style={{ opacity: text2Opacity, y: text2Y }}
-              className="absolute left-0 right-0 space-y-4 text-left text-white"
+              className="absolute left-0 right-0 space-y-3 sm:space-y-4 text-left text-white"
             >
               <span className="text-amber-300 text-xs font-mono font-extrabold uppercase tracking-widest flex items-center space-x-1.5 bg-amber-400/20 border border-amber-300/40 px-3.5 py-1 rounded-full w-fit">
                 <BookOpen className="h-4 w-4 text-amber-300" />
                 <span>Academic Programme</span>
               </span>
 
-              <h2 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight">
+              <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight">
                 Phonics, Numeracy,<br />
                 Manipuri & Core STEM.
               </h2>
 
-              <p className="text-sky-100 text-sm sm:text-base max-w-lg leading-relaxed font-normal">
+              <p className="text-sky-100 text-xs sm:text-sm lg:text-base max-w-lg leading-relaxed font-normal">
                 Structured early foundational skills in Phonics, Vocabulary, and Conversation combined with rigorous core learning in Mathematics, Environmental Studies, English Grammar, and traditional Manipuri language literacy.
               </p>
             </motion.div>
@@ -144,19 +144,19 @@ export default function ScrollStorytelling() {
             {/* Beat 3: Co-Curricular & Manipur Cultural Heritage */}
             <motion.div
               style={{ opacity: text3Opacity, y: text3Y }}
-              className="absolute left-0 right-0 space-y-4 text-left text-white"
+              className="absolute left-0 right-0 space-y-3 sm:space-y-4 text-left text-white"
             >
               <span className="text-emerald-300 text-xs font-mono font-extrabold uppercase tracking-widest flex items-center space-x-1.5 bg-emerald-400/20 border border-emerald-300/40 px-3.5 py-1 rounded-full w-fit">
                 <Flame className="h-4 w-4 text-emerald-300" />
                 <span>Indigenous Heritage & Arts</span>
               </span>
 
-              <h2 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight">
+              <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight">
                 Thang-Ta, Yoga,<br />
                 Sports & Creative Arts.
               </h2>
 
-              <p className="text-emerald-100 text-sm sm:text-base max-w-lg leading-relaxed font-normal">
+              <p className="text-emerald-100 text-xs sm:text-sm lg:text-base max-w-lg leading-relaxed font-normal">
                 Nurturing the whole child through indigenous Manipuri martial arts (Thang-Ta), Yoga for mental poise, athletics, Music & Dance, and experiential Waste-to-Wealth eco-projects.
               </p>
             </motion.div>
@@ -164,19 +164,19 @@ export default function ScrollStorytelling() {
             {/* Beat 4: Fresh & Healthy Tiffin Programme */}
             <motion.div
               style={{ opacity: text4Opacity, y: text4Y }}
-              className="absolute left-0 right-0 space-y-4 text-left text-white"
+              className="absolute left-0 right-0 space-y-3 sm:space-y-4 text-left text-white"
             >
               <span className="text-amber-300 text-xs font-mono font-extrabold uppercase tracking-widest flex items-center space-x-1.5 bg-amber-400/20 border border-amber-300/40 px-3.5 py-1 rounded-full w-fit">
                 <Utensils className="h-4 w-4 text-amber-300" />
                 <span>Healthy Food • Happy Children</span>
               </span>
 
-              <h2 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight">
+              <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight">
                 Fresh & Healthy<br />
                 Daily Tiffin Programme.
               </h2>
 
-              <p className="text-emerald-100 text-sm sm:text-base max-w-lg leading-relaxed font-normal">
+              <p className="text-emerald-100 text-xs sm:text-sm lg:text-base max-w-lg leading-relaxed font-normal">
                 Freshly cooked, hygienically prepared nutritious meals every day with a rotating menu. A common campus menu promotes equality, sharing, and healthy eating while completely eliminating tiffin envy.
               </p>
             </motion.div>
@@ -184,7 +184,7 @@ export default function ScrollStorytelling() {
           </div>
 
           {/* RIGHT SIDE: Dynamic 2D/3D Graphic Canvas */}
-          <div className="relative w-full h-[400px] lg:h-[500px] flex items-center justify-center">
+          <div className="relative w-full h-[270px] sm:h-[350px] lg:h-[500px] flex items-center justify-center scale-[0.84] sm:scale-95 lg:scale-100 origin-center">
             
             {/* Object 1: LITTLE HOUSE School Crest Orb */}
             <motion.div
