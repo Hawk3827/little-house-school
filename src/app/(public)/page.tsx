@@ -7,6 +7,9 @@ import ScrollStorytelling from '@/components/ScrollStorytelling';
 import LiveNoticeTicker from '@/components/LiveNoticeTicker';
 
 import { NoticeData } from '@/components/NoticeDetailModal';
+import TiffinProgrammeSection from '@/components/TiffinProgrammeSection';
+import AcademicProgrammeBento from '@/components/AcademicProgrammeBento';
+import ApproachAndPartnershipSection from '@/components/ApproachAndPartnershipSection';
 
 export const dynamic = 'force-static';
 export const revalidate = 300; // 5-minute Edge Caching (ISR) for instant 15ms loading
@@ -208,64 +211,14 @@ export default async function HomePage() {
         </AnimatedSection>
       </section>
 
-      {/* 🏛️ Core Pillars of Education */}
-      <section className="max-w-7xl mx-auto px-6 sm:px-10 space-y-12">
-        <AnimatedSection type="fade-in" className="text-left max-w-3xl space-y-3">
-          <span className="text-[10px] font-mono font-extrabold tracking-widest text-sky-900 uppercase bg-sky-100 px-2.5 py-0.5 rounded-md border border-sky-200">
-            OUR CORE PILLARS
-          </span>
-          <h2 className="text-4xl sm:text-5xl font-extrabold text-slate-900 tracking-tight">
-            WHY LITTLE HOUSE.
-          </h2>
-          <p className="text-base text-slate-700 font-normal max-w-xl">
-            We provide a balanced education that supports the intellectual, physical, and personal growth of each child.
-          </p>
-        </AnimatedSection>
+      {/* 📚 Comprehensive Academic Programme & Co-Curricular Bento */}
+      <AcademicProgrammeBento />
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <AnimatedSection type="fade-in-up" className="h-full">
-            <div className="bg-white p-8 sm:p-10 rounded-[32px] border border-sky-100 hover:border-sky-300 hover:shadow-lg transition-all shadow-sm space-y-6 text-left h-full flex flex-col justify-between">
-              <div className="w-14 h-14 bg-sky-100 border border-sky-200 rounded-2xl flex items-center justify-center text-sky-800">
-                <BookOpen className="h-7 w-7" />
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-xl font-bold text-slate-900 tracking-tight">Rigorous Academics</h3>
-                <p className="text-slate-700 text-xs sm:text-sm leading-relaxed">
-                  Our curriculum is structured to challenge students and prepare them for higher education and future careers with confidence.
-                </p>
-              </div>
-            </div>
-          </AnimatedSection>
+      {/* 🍱 Signature Fresh & Healthy Tiffin Programme */}
+      <TiffinProgrammeSection />
 
-          <AnimatedSection type="fade-in-up" className="h-full">
-            <div className="bg-white p-8 sm:p-10 rounded-[32px] border border-amber-100 hover:border-amber-300 hover:shadow-lg transition-all shadow-sm space-y-6 text-left h-full flex flex-col justify-between">
-              <div className="w-14 h-14 bg-amber-100 border border-amber-200 rounded-2xl flex items-center justify-center text-amber-800">
-                <Award className="h-7 w-7" />
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-xl font-bold text-slate-900 tracking-tight">Extracurricular Excellence</h3>
-                <p className="text-slate-700 text-xs sm:text-sm leading-relaxed">
-                  From athletics and sports to cultural exhibitions, debate clubs, and visual arts, students pursue their true passions.
-                </p>
-              </div>
-            </div>
-          </AnimatedSection>
-
-          <AnimatedSection type="fade-in-up" className="h-full">
-            <div className="bg-white p-8 sm:p-10 rounded-[32px] border border-emerald-100 hover:border-emerald-300 hover:shadow-lg transition-all shadow-sm space-y-6 text-left h-full flex flex-col justify-between">
-              <div className="w-14 h-14 bg-emerald-100 border border-emerald-200 rounded-2xl flex items-center justify-center text-emerald-800">
-                <Users className="h-7 w-7" />
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-xl font-bold text-slate-900 tracking-tight">Supportive Community</h3>
-                <p className="text-slate-700 text-xs sm:text-sm leading-relaxed">
-                  We foster a warm family culture built on mutual respect, student empathy, and close collaboration with parents.
-                </p>
-              </div>
-            </div>
-          </AnimatedSection>
-        </div>
-      </section>
+      {/* 🤝 Our Approach, Why Choose Us & Partnership with Parents */}
+      <ApproachAndPartnershipSection />
 
       {/* 📰 Announcements & News Section */}
       <section className="max-w-7xl mx-auto px-6 sm:px-10 space-y-12">
