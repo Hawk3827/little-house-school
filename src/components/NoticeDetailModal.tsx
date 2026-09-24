@@ -170,10 +170,10 @@ export default function NoticeDetailModal({ notice, onClose }: NoticeDetailModal
           </div>
 
           {/* Modal Body Content (Scrollable) */}
-          <div className="p-4 sm:p-6 md:p-8 overflow-y-auto bg-slate-50 flex-1">
+          <div className="p-3 sm:p-5 md:p-6 overflow-y-auto bg-slate-100/90 flex-1 flex flex-col items-center justify-center">
             {hasScannedImage ? (
-              /* Poster / Scanned Image Display */
-              <div className="w-full flex flex-col items-center space-y-4">
+              /* Poster / Scanned Image Display - Pure Image Focus */
+              <div className="w-full flex flex-col items-center justify-center py-2">
                 <div 
                   className="w-full flex justify-center transition-transform duration-300"
                   style={{ transform: zoomLevel > 1 ? `scale(${zoomLevel})` : 'none', transformOrigin: 'top center' }}
@@ -181,19 +181,9 @@ export default function NoticeDetailModal({ notice, onClose }: NoticeDetailModal
                   <img
                     src={notice.imageUrl!}
                     alt={notice.title}
-                    className="w-full max-w-2xl h-auto max-h-[70vh] object-contain rounded-2xl shadow-xl border border-slate-200 bg-white"
+                    className="w-full max-w-3xl h-auto max-h-[76vh] object-contain rounded-2xl shadow-xl border border-slate-200 bg-white"
                   />
                 </div>
-
-                {/* Subtitle / caption if content exists */}
-                {notice.content && (
-                  <div className="w-full max-w-2xl bg-white p-5 rounded-2xl border border-slate-200 text-xs sm:text-sm text-slate-700 leading-relaxed shadow-xs text-left">
-                    <span className="text-[10px] font-mono font-bold text-sky-800 uppercase tracking-widest block mb-1">
-                      NOTICE DETAILS & INSTRUCTIONS
-                    </span>
-                    <p className="whitespace-pre-wrap">{notice.content}</p>
-                  </div>
-                )}
               </div>
             ) : (
               /* Official Circular Letterhead Paper */
