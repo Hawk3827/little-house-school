@@ -30,7 +30,6 @@ export default function NoticeDetailModal({
 }: NoticeDetailModalProps) {
   const [mounted, setMounted] = useState(false);
   const [timeLeft, setTimeLeft] = useState(autoCloseSeconds);
-  const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -57,9 +56,9 @@ export default function NoticeDetailModal({
     };
   }, [notice, onClose]);
 
-  // Countdown timer for auto-exit
+  // Background auto-exit countdown timer
   useEffect(() => {
-    if (!notice || timeLeft <= 0 || isPaused) return;
+    if (!notice || timeLeft <= 0) return;
 
     const interval = setInterval(() => {
       setTimeLeft(prev => {
@@ -73,12 +72,11 @@ export default function NoticeDetailModal({
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [notice, timeLeft, isPaused, onClose]);
+  }, [notice, timeLeft, onClose]);
 
   if (!mounted || !notice) return null;
 
   const hasScannedImage = Boolean(notice.imageUrl);
-  const progressPercent = (timeLeft / autoCloseSeconds) * 100;
 
   const modalContent = (
     <div 
@@ -94,55 +92,30 @@ export default function NoticeDetailModal({
 
       {hasScannedImage ? (
         /* ========================================================================= */
-        /* 🖼️ PURE IMAGE NOTICE DISPLAY: STRICTLY THE IMAGE + EXIT BUTTON (NO WORDS) */
+        /* 🖼️ PURE IMAGE NOTICE DISPLAY: STRICTLY THE IMAGE + CIRCULAR CROSS EXIT   */
         /* ========================================================================= */
         <div 
           className="relative z-10 max-w-4xl w-full flex flex-col items-center justify-center animate-scaleUp my-auto"
           onClick={(e) => e.stopPropagation()}
-          onMouseEnter={() => setIsPaused(true)}
-          onMouseLeave={() => setIsPaused(false)}
         >
-          {/* Top Floating Exit Bar right above / aligned with the image */}
-          <div className="w-full flex justify-end items-center mb-3 px-1 sm:px-0">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex items-center space-x-2.5 bg-black/80 hover:bg-red-600 text-white px-4 py-2 rounded-full border border-white/20 shadow-2xl backdrop-blur-md transition-all duration-200 cursor-pointer font-extrabold text-xs sm:text-sm group"
-              title="Click to Exit (or press Esc)"
-            >
-              <span>Exit</span>
-              <span className="font-mono text-[11px] bg-white/20 px-2 py-0.5 rounded-full font-bold">
-                {isPaused ? 'Paused' : `${timeLeft}s`}
-              </span>
-              <X className="h-4 w-4 sm:h-4.5 sm:w-4.5 group-hover:rotate-90 transition-transform" />
-            </button>
-          </div>
-
-          {/* The Notice Image (Clean, High-Res, Centered) */}
-          <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border-2 border-white/20 bg-white group max-h-[82vh] flex items-center justify-center">
+          {/* The Notice Image (Clean, High-Res, Centered) with Cross Sign on Top Right */}
+          <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border-2 border-white/20 bg-white group max-h-[85vh] flex items-center justify-center">
             <img
               src={notice.imageUrl!}
               alt={notice.title || 'Official School Notice'}
-              className="w-auto h-auto max-h-[80vh] max-w-full object-contain block"
+              className="w-auto h-auto max-h-[82vh] max-w-full object-contain block"
             />
 
-            {/* Quick Exit X Icon on top-right corner of the image */}
+            {/* Clean Cross Sign (X) for Exit on top-right corner of the image */}
             <button
               type="button"
               onClick={onClose}
-              className="absolute top-3 right-3 sm:top-4 sm:right-4 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-slate-900/80 hover:bg-red-600 text-white flex items-center justify-center transition-all duration-200 shadow-xl border border-white/30 cursor-pointer"
+              className="absolute top-3 right-3 sm:top-4 sm:right-4 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-black/75 hover:bg-red-600 text-white flex items-center justify-center transition-all duration-200 shadow-2xl border border-white/40 backdrop-blur-md cursor-pointer group"
               aria-label="Exit notice"
+              title="Close Notice"
             >
-              <X className="h-5 w-5" />
+              <X className="h-5 w-5 sm:h-6 sm:w-6 group-hover:rotate-90 transition-transform" />
             </button>
-
-            {/* Subtle Auto-Exit Progress Bar at bottom of image */}
-            <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-black/30">
-              <div 
-                className="h-full bg-gradient-to-r from-sky-400 via-amber-400 to-red-500 transition-all duration-1000 ease-linear"
-                style={{ width: `${progressPercent}%` }}
-              />
-            </div>
           </div>
         </div>
       ) : (
@@ -166,11 +139,11 @@ export default function NoticeDetailModal({
             <button
               type="button"
               onClick={onClose}
-              className="flex items-center space-x-2 bg-slate-900 hover:bg-red-600 text-white px-3.5 py-1.5 rounded-full text-xs font-bold transition cursor-pointer"
+              className="w-9 h-9 rounded-full bg-slate-100 hover:bg-red-600 hover:text-white text-slate-700 flex items-center justify-center transition cursor-pointer"
+              aria-label="Close"
+              title="Close"
             >
-              <span>Exit</span>
-              <span className="font-mono text-[10px] bg-white/20 px-1.5 py-0.5 rounded-full">{timeLeft}s</span>
-              <X className="h-3.5 w-3.5" />
+              <X className="h-5 w-5" />
             </button>
           </div>
 
