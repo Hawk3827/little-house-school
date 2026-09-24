@@ -121,10 +121,6 @@ export default function ApproachAndPartnershipSection() {
               ))}
             </div>
           </div>
-
-          <div className="pt-2 text-[10px] font-mono font-bold text-sky-300 uppercase tracking-widest">
-            Recognized by Directorate of Education, Govt. of Manipur
-          </div>
         </AnimatedSection>
       </div>
 

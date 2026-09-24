@@ -1,8 +1,8 @@
 import React from 'react';
 import Link from 'next/link';
 import prisma from '@/lib/prisma';
-import { BookOpen, Award, Users, ArrowRight, Calendar, User, Sparkles, GraduationCap, ShieldCheck, Heart } from 'lucide-react';
-import { AnimatedSection, AnimatedGrid, AnimatedGridItem, HoverCard } from '@/components/AnimatedSection';
+import { User, Sparkles } from 'lucide-react';
+import { AnimatedSection } from '@/components/AnimatedSection';
 import ScrollStorytelling from '@/components/ScrollStorytelling';
 import LiveNoticeTicker from '@/components/LiveNoticeTicker';
 
@@ -15,7 +15,6 @@ export const dynamic = 'force-static';
 export const revalidate = 300; // 5-minute Edge Caching (ISR) for instant 15ms loading
 
 export default async function HomePage() {
-  let announcements: any[] = [];
   let tickerNotices: (NoticeData & { isPinned?: boolean })[] = [];
 
   try {
@@ -38,7 +37,6 @@ export default async function HomePage() {
 
     const rawAnnouncements = await Promise.race([dbPromise, timeoutPromise]);
 
-    announcements = rawAnnouncements.filter(a => a.audience === 'ALL').slice(0, 3);
     tickerNotices = rawAnnouncements.filter(a => a.isTicker !== false).map(a => ({
       id: a.id,
       title: a.title,
@@ -52,15 +50,7 @@ export default async function HomePage() {
       }
     }));
   } catch (error) {
-    announcements = [
-      {
-        id: '1',
-        title: 'Welcome to the New Academic Year 2026-2027!',
-        content: 'We are thrilled to welcome all new and returning students back to school. Let\'s make this year productive, engaging, and inspiring.',
-        createdAt: new Date(),
-        createdBy: { name: 'Haobam Chanu Ranjana' },
-      },
-    ];
+    tickerNotices = [];
   }
 
   return (
@@ -85,9 +75,9 @@ export default async function HomePage() {
         </div>
 
         {/* Hero Main Content */}
-        <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-10 py-10 sm:py-16 my-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-10 sm:gap-14 items-center">
+        <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-10 py-10 sm:py-16 my-auto w-full flex flex-col items-start">
           {/* Main Hero Typography Card */}
-          <AnimatedSection type="slide-in-left" className="space-y-5 text-left lg:col-span-7 bg-white/80 backdrop-blur-md p-6 sm:p-10 rounded-[36px] border border-white/80 shadow-lg">
+          <AnimatedSection type="slide-in-left" className="space-y-5 text-left max-w-3xl bg-white/80 backdrop-blur-md p-6 sm:p-10 rounded-[36px] border border-white/80 shadow-lg">
             {/* Sunny Yellow Admissions Open Badge (High Contrast Accessible Colors) */}
             <div className="inline-flex items-center space-x-2.5 bg-amber-400 text-slate-950 border border-amber-500/50 font-black rounded-full px-4 py-1.5 shadow-sm">
               <span className="w-2.5 h-2.5 rounded-full bg-red-600 animate-ping" />
@@ -122,57 +112,6 @@ export default async function HomePage() {
               </Link>
             </div>
           </AnimatedSection>
-
-          {/* Stats Box Bento Panels in Crisp High-Contrast White (Semantic divs for numeric data) */}
-          <AnimatedGrid className="grid grid-cols-2 gap-3.5 lg:col-span-5 text-left">
-            <AnimatedGridItem>
-              <HoverCard className="bg-white/95 backdrop-blur-md p-6 rounded-[24px] border border-sky-200 shadow-md hover:shadow-lg hover:border-sky-400 h-full flex flex-col justify-between transition-all">
-                <div className="p-2.5 bg-sky-100 text-sky-800 rounded-xl w-fit mb-3">
-                  <BookOpen className="h-5 w-5" />
-                </div>
-                <div>
-                  <div className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">25+</div>
-                  <p className="text-[10px] font-mono tracking-wider font-extrabold text-sky-900 uppercase mt-0.5">Subjects & Electives</p>
-                </div>
-              </HoverCard>
-            </AnimatedGridItem>
-
-            <AnimatedGridItem>
-              <HoverCard className="bg-white/95 backdrop-blur-md p-6 rounded-[24px] border border-sky-200 shadow-md hover:shadow-lg hover:border-sky-400 h-full flex flex-col justify-between transition-all">
-                <div className="p-2.5 bg-amber-100 text-amber-900 rounded-xl w-fit mb-3">
-                  <Users className="h-5 w-5" />
-                </div>
-                <div>
-                  <div className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">1:12</div>
-                  <p className="text-[10px] font-mono tracking-wider font-extrabold text-amber-950 uppercase mt-0.5">Student Teacher Ratio</p>
-                </div>
-              </HoverCard>
-            </AnimatedGridItem>
-
-            <AnimatedGridItem>
-              <HoverCard className="bg-white/95 backdrop-blur-md p-6 rounded-[24px] border border-sky-200 shadow-md hover:shadow-lg hover:border-sky-400 h-full flex flex-col justify-between transition-all">
-                <div className="p-2.5 bg-emerald-100 text-emerald-900 rounded-xl w-fit mb-3">
-                  <Award className="h-5 w-5" />
-                </div>
-                <div>
-                  <div className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">98%</div>
-                  <p className="text-[10px] font-mono tracking-wider font-extrabold text-emerald-950 uppercase mt-0.5">Academic Success</p>
-                </div>
-              </HoverCard>
-            </AnimatedGridItem>
-
-            <AnimatedGridItem>
-              <HoverCard className="bg-white/95 backdrop-blur-md p-6 rounded-[24px] border border-sky-200 shadow-md hover:shadow-lg hover:border-sky-400 h-full flex flex-col justify-between transition-all">
-                <div className="p-2.5 bg-purple-100 text-purple-900 rounded-xl w-fit mb-3">
-                  <Heart className="h-5 w-5" />
-                </div>
-                <div>
-                  <div className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight">15+</div>
-                  <p className="text-[10px] font-mono tracking-wider font-extrabold text-purple-950 uppercase mt-0.5">Clubs & Sports</p>
-                </div>
-              </HoverCard>
-            </AnimatedGridItem>
-          </AnimatedGrid>
         </div>
 
         {/* 📢 Interactive Live Moving Notice Ticker Banner (Pinned at bottom of initial Hero screen, visible before scrolling) */}
@@ -219,45 +158,6 @@ export default async function HomePage() {
 
       {/* 🤝 Our Approach, Why Choose Us & Partnership with Parents */}
       <ApproachAndPartnershipSection />
-
-      {/* 📰 Announcements & News Section */}
-      <section className="max-w-7xl mx-auto px-6 sm:px-10 space-y-12">
-        <AnimatedSection type="fade-in-up" className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6 border-b border-sky-100 pb-6">
-          <div className="text-left space-y-2">
-            <span className="text-[10px] font-mono font-extrabold tracking-widest text-sky-900 uppercase bg-sky-100 px-2.5 py-0.5 rounded-md border border-sky-200">
-              CAMPUS COMMUNICATIONS
-            </span>
-            <h2 className="text-4xl sm:text-5xl font-extrabold text-slate-900 tracking-tight">
-              NEWS & NOTICES.
-            </h2>
-          </div>
-          <Link href="/admission" className="flex items-center text-xs font-mono font-extrabold tracking-wider text-sky-800 hover:text-sky-900 uppercase transition space-x-1">
-            <span>EXPLORE ADMISSIONS</span>
-            <ArrowRight className="h-4 w-4" />
-          </Link>
-        </AnimatedSection>
-
-        <AnimatedGrid className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {announcements.map((announcement) => (
-            <AnimatedGridItem key={announcement.id}>
-              <HoverCard className="bg-white rounded-[32px] border border-sky-100 hover:border-sky-300 transition-all shadow-sm hover:shadow-md overflow-hidden flex flex-col justify-between p-8 h-full text-left">
-                <div className="space-y-4">
-                  <div className="flex items-center text-[10px] font-mono font-bold text-slate-600 space-x-2">
-                    <Calendar className="h-3.5 w-3.5 text-sky-700" />
-                    <span>{new Date(announcement.createdAt).toLocaleDateString(undefined, { dateStyle: 'medium' }).toUpperCase()}</span>
-                  </div>
-                  <h3 className="text-lg font-bold text-slate-900 tracking-tight line-clamp-1">{announcement.title}</h3>
-                  <p className="text-slate-700 text-xs sm:text-sm line-clamp-4 leading-relaxed font-normal">{announcement.content}</p>
-                </div>
-                <div className="mt-8 pt-4 border-t border-slate-100 flex justify-between items-center text-[9px] font-mono font-bold text-slate-600">
-                  <span>BY: {announcement.createdBy?.name?.toUpperCase() || 'ADMINISTRATOR'}</span>
-                  <span className="text-sky-900 bg-sky-100 border border-sky-200 px-2.5 py-0.5 rounded-full font-bold">PUBLIC</span>
-                </div>
-              </HoverCard>
-            </AnimatedGridItem>
-          ))}
-        </AnimatedGrid>
-      </section>
     </div>
   );
 }
