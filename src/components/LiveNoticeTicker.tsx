@@ -44,6 +44,22 @@ export default function LiveNoticeTicker({ notices: initialNotices = [] }: LiveN
     return () => { isMounted = false; };
   }, []);
 
+  // Automatically trigger the featured notice / poster on entering the website
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const hasShown = sessionStorage.getItem('lhs_auto_notice_shown');
+    if (!hasShown) {
+      const noticeToPopup = liveNotices.find((n) => n.imageUrl && n.isPinned) || liveNotices.find((n) => n.imageUrl);
+      if (noticeToPopup) {
+        const timer = setTimeout(() => {
+          setSelectedNotice(noticeToPopup);
+          sessionStorage.setItem('lhs_auto_notice_shown', 'true');
+        }, 700);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [liveNotices]);
+
   // Fallback default notices if none exist yet in DB
   const defaultNotices: (NoticeData & { isPinned?: boolean })[] = [
     {
@@ -222,6 +238,7 @@ export default function LiveNoticeTicker({ notices: initialNotices = [] }: LiveN
         <NoticeDetailModal
           notice={selectedNotice}
           onClose={() => setSelectedNotice(null)}
+          autoCloseSeconds={10}
         />
       )}
     </>
